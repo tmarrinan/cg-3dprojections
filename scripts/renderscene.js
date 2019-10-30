@@ -53,6 +53,28 @@ function Init() {
     DrawScene();
 }
 
+// event handler for pressing arrow keys
+document.addEventListener('keydown', OnKeyDown, false);
+//You then need to define the OnKeyDown function:
+
+// Called when user presses a key on the keyboard down 
+function OnKeyDown(event) {
+    switch (event.keyCode) {
+        case 37: // LEFT Arrow
+            console.log("left");
+            break;
+        case 38: // UP Arrow
+            console.log("up");
+            break;
+        case 39: // RIGHT Arrow
+            console.log("right");
+            break;
+        case 40: // DOWN Arrow
+            console.log("down");
+            break;
+    }
+}
+
 // Main drawing code here! Use information contained in variable `scene`
 function DrawScene() {
     console.log(scene);
