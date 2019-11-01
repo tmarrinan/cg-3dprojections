@@ -13,6 +13,8 @@ function Init() {
     ctx = view.getContext('2d');
 
     // initial scene... feel free to change this
+    // Animation is in degrees, not radians. 
+    // We have to convert that to radians.
     scene = {
         view: {
             type: 'perspective',
@@ -77,6 +79,19 @@ function OnKeyDown(event) {
 
 // Main drawing code here! Use information contained in variable `scene`
 function DrawScene() {
+
+    // Drawing the scene in our two different perspectives
+    let vrp = scene.view.vrp;
+    let vpn = scene.view.vpn;
+    let vup = scene.view.vup;
+    let prp = scene.view.prp;
+    let clip = scene.view.clip;
+
+    var perspective = mat4x4perspective(vrp, vpn. vup, prp, clip);
+    var parallel = mat4x4parallel(vrp, vpn, vup, prp, clip);
+    
+
+
     console.log(scene);
 }
 

@@ -233,7 +233,10 @@ class Vector extends Matrix {
 
 function mat4x4identity() {
     var result = new Matrix(4, 4);
-    
+    result.data[0][0] = 1;
+    result.data[1][1] = 1;
+    result.data[2][2] = 1;
+    result.data[3][3] = 1;
     return result;
 }
 
@@ -246,7 +249,6 @@ function mat4x4translate(tx, ty, tz) {
     result.data[2][2] = 1;
     result.data[2][3] = tz;
     result.data[3][3] = 1;
-    console.log(result);
     return result;
 }
 
@@ -259,7 +261,6 @@ function mat4x4scale(sx, sy, sz) {
     result.data[2][2] = 1;
     result.data[2][3] = sz;
     result.data[3][3] = 1;
-    console.log(result);
     return result;
 }
 
@@ -314,6 +315,8 @@ function mat4x4parallel(vrp, vpn, vup, prp, clip) {
     // 3. shear such that the DOP becomes parallel to the z-axis
     // 4. translate and scale into canonical view volume
     //    (x = [-1,1], y = [-1,1], z = [0,-1])
+
+    
     
 }
 
@@ -326,6 +329,10 @@ function mat4x4perspective(vrp, vpn, vup, prp, clip) {
     // 5. scale into canonical view volume (truncated pyramid)
     //    (x = [z,-z], y = [z,-z], z = [-z_min,-1])
     
+    
+    let vrp_origin_translate = mat4x4translate(-1*vrp.x, -1*vrp.y, -1*vrp.z).mult();
+    
+    console.log(vrp_origin);
 }
 
 function mat4x4mper(near) {
