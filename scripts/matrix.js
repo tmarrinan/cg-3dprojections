@@ -305,6 +305,31 @@ function mat4x4shearxy(shx, shy) {
     result.data[1][2] = shy;
     result.data[2][2] = 1;
     result.data[3][3] = 1;
+    
+    return result;
+}
+
+function mat4x4rotatevrp(u1,u2,u3,v1,v2,v3,n1,n2,n3) {
+    var result = new Matrix(4,4);
+    result.data[0][0] = u1;
+    result.data[0][1] = u2;
+    result.data[0][2] = u3;
+    result.data[1][0] = v1;
+    result.data[1][1] = v2;
+    result.data[1][2] = v3;
+    result.data[2][0] = n1;
+    result.data[2][1] = n2;
+    result.data[2][2] = n3;
+    result.data[3][3] = 1;
+    return result;
+}
+
+function mat4x4scaleperspective(sperx, spery, sperz) {
+    var result = new Matrix(4,4);
+    result.data[0][0] = sperx;
+    result.data[1][1] = spery;
+    result.data[2][2] = sperz;
+    result.data[3][3] = 1;
     return result;
 }
 
@@ -316,8 +341,25 @@ function mat4x4parallel(vrp, vpn, vup, prp, clip) {
     // 4. translate and scale into canonical view volume
     //    (x = [-1,1], y = [-1,1], z = [0,-1])
 
-    
-    
+    // 1.
+    var vrp_origin_translate = Vector3(-vrp.x, -vrp.y, -vrp.z);
+    // 2.
+    vpn.normalize();
+    var n_axis = new Vector3(vpn.x, vpn.y, vpn.z);
+    var u_axis = vup.cross(n_axis);
+    let v_axis = n_axis.cross(u_axis);
+    var vrc_origin_rotate = mat4x4rotatevrp(u_axis.x, u_axis.y, u_axis.z, v_axis.x, v_axis.y, v_axis.z, n_axis.x, n_axis.y, n_axis.z);
+    // 3.
+    var DOP_x = ((Math.abs(clip[0]) + Math.abs(clip[1]))/2); // center of window on the X
+    var DOP_y = ((Math.abs(clip[2]) + Math.abs(clip[3]))/2); // center of window on the Y
+    const Z = 1; // the Z is usually 0
+    var CW = Vector3(DOP_x, DOP_y, Z); // center of window Vector
+    var DOP = CW.subtract(prp); // From class slides DOP = CW - PRP
+    var shxpar, shypar;
+    shxpar = (-DOP_x) / Z;
+    shypar = (-DOP_y) / Z
+    var shearxy = mat4x4shearxy(shxpar, shypar);
+
 }
 
 function mat4x4perspective(vrp, vpn, vup, prp, clip) {
@@ -329,14 +371,41 @@ function mat4x4perspective(vrp, vpn, vup, prp, clip) {
     // 5. scale into canonical view volume (truncated pyramid)
     //    (x = [z,-z], y = [z,-z], z = [-z_min,-1])
     
+    // 1.
+    var vrp_origin_translate_vector = Vector3(-vrp.x, -vrp.y, -vrp.z);
+    var vrp_origin_translate_matrix = mat4x4translate(-vrp.x, -vrp.y, -vrp.z);
+    // 2.
+    vpn.normalize();
+    var n_axis = Vector3(vpn.x, vpn.y, vpn.z);
+    var u_axis = vup.cross(n_axis);
+    let v_axis = n_axis.cross(u_axis);
+    var vrc_origin_rotate = mat4x4rotatevrp(u_axis.x, u_axis.y, u_axis.z, v_axis.x, v_axis.y, v_axis.z, n_axis.x, n_axis.y, n_axis.z);
+    // 3.
+    var prp_origin_translate = Vector3(-prp.x, -prp.y, -prp.z);
+    // 4.
+    var COP = mat4x4shearxy(-prp.x, -prp.y);
+    // 5.
+    var VRP_prime = -prp.z;
+    var scale_pers_x = ((2 * VRP_prime) / ((clip[1] - clip[0]) * (VRP_prime + clip[5])));
+    var scale_pers_y = ((2 * VRP_prime) / ((clip[3] - clip[2]) * (VRP_prime + clip[5])));
+    var scale_pers_z = (-1 / (VRP_prime + clip[5]));
+    var s_pers = mat4x4scaleperspective(scale_pers_x, scale_pers_y, scale_pers_z);
     
-    let vrp_origin_translate = mat4x4translate(-1*vrp.x, -1*vrp.y, -1*vrp.z).mult();
+    //var Nper = s_pers.mult
     
-    console.log(vrp_origin);
+    /**
+     * 
+     * X avg
+     * Y avg
+     * z = 0
+     * new vector for center
+     * DOP = cw.sub(prp)
+     */
+    
 }
 
-function mat4x4mper(near) {
-    // convert perspective canonical view volume into the parallel one
+function mat4x4mper() {
+    // perspective projection from canonical view volume to far clip plane
     var result = new Matrix(4, 4);
     
     return result;

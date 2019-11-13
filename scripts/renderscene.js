@@ -13,6 +13,7 @@ function Init() {
     ctx = view.getContext('2d');
 
     // initial scene... feel free to change this
+    
     // Animation is in degrees, not radians. 
     // We have to convert that to radians.
     scene = {
@@ -52,47 +53,19 @@ function Init() {
         ]
     };
 
+    // event handler for pressing arrow keys
+    document.addEventListener('keydown', OnKeyDown, false);
+
     DrawScene();
-}
-
-// event handler for pressing arrow keys
-document.addEventListener('keydown', OnKeyDown, false);
-//You then need to define the OnKeyDown function:
-
-// Called when user presses a key on the keyboard down 
-function OnKeyDown(event) {
-    switch (event.keyCode) {
-        case 37: // LEFT Arrow
-            console.log("left");
-            break;
-        case 38: // UP Arrow
-            console.log("up");
-            break;
-        case 39: // RIGHT Arrow
-            console.log("right");
-            break;
-        case 40: // DOWN Arrow
-            console.log("down");
-            break;
-    }
 }
 
 // Main drawing code here! Use information contained in variable `scene`
 function DrawScene() {
 
     // Drawing the scene in our two different perspectives
-    let vrp = scene.view.vrp;
-    let vpn = scene.view.vpn;
-    let vup = scene.view.vup;
-    let prp = scene.view.prp;
-    let clip = scene.view.clip;
+    var perspective = mat4x4perspective(scene.view.vrp, scene.view.vpn, scene.view.vup, scene.view.prp, scene.view.clip);
+    var parallel = mat4x4parallel(scene.view.vrp, scene.view.vpn, scene.view.vup, scene.view.prp, scene.view.clip);    
 
-    var perspective = mat4x4perspective(vrp, vpn. vup, prp, clip);
-    var parallel = mat4x4parallel(vrp, vpn, vup, prp, clip);
-    
-
-
-    console.log(scene);
 }
 
 // Called when user selects a new scene JSON file
@@ -129,6 +102,24 @@ function LoadNewScene() {
         DrawScene();
     };
     reader.readAsText(scene_file.files[0], "UTF-8");
+}
+
+// Called when user presses a key on the keyboard down 
+function OnKeyDown(event) {
+    switch (event.keyCode) {
+        case 37: // LEFT Arrow
+            console.log("left");
+            break;
+        case 38: // UP Arrow
+            console.log("up");
+            break;
+        case 39: // RIGHT Arrow
+            console.log("right");
+            break;
+        case 40: // DOWN Arrow
+            console.log("down");
+            break;
+    }
 }
 
 // Draw black 2D line with red endpoints 
