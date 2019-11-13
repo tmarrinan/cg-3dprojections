@@ -333,6 +333,21 @@ function mat4x4scaleperspective(sperx, spery, sperz) {
     return result;
 }
 
+function mat4x4scareparallel(sparx, spary, sparz) {
+    var result = mat4x4identity();
+    result.data[0][0] = sparx;
+    result.data[1][1] = spary;
+    result.data[2][2] = sparz;
+    return result;
+}
+function mat4x4cwfront(cwx, cwy, front) {
+    var result = mat4x4identity();
+    result.data[0][3] = cwx;
+    result.data[1][3] = cwy;
+    result.data[2][3] = front;
+    return result;
+}
+
 function mat4x4parallel(vrp, vpn, vup, prp, clip) {
     // 1. translate VRP to the origin
     // 2. rotate VRC such that n-axis (VPN) becomes the z-axis, 
@@ -342,16 +357,16 @@ function mat4x4parallel(vrp, vpn, vup, prp, clip) {
     //    (x = [-1,1], y = [-1,1], z = [0,-1])
 
     // 1.
-    var vrp_origin_translate = Vector3(-vrp.x, -vrp.y, -vrp.z);
+    var vrp_origin_translate = mat4x4translate(-vrp.x, -vrp.y, -vrp.z);
     // 2.
     vpn.normalize();
-    var n_axis = new Vector3(vpn.x, vpn.y, vpn.z);
+    var n_axis = Vector3(vpn.x, vpn.y, vpn.z);
     var u_axis = vup.cross(n_axis);
     let v_axis = n_axis.cross(u_axis);
     var vrc_origin_rotate = mat4x4rotatevrp(u_axis.x, u_axis.y, u_axis.z, v_axis.x, v_axis.y, v_axis.z, n_axis.x, n_axis.y, n_axis.z);
     // 3.
-    var DOP_x = ((Math.abs(clip[0]) + Math.abs(clip[1]))/2); // center of window on the X
-    var DOP_y = ((Math.abs(clip[2]) + Math.abs(clip[3]))/2); // center of window on the Y
+    var DOP_x = ((clip[0] +clip[1])/2); // center of window on the X
+    var DOP_y = ((clip[2] + clip[3])/2); // center of window on the Y
     const Z = 1; // the Z is usually 0
     var CW = Vector3(DOP_x, DOP_y, Z); // center of window Vector
     var DOP = CW.subtract(prp); // From class slides DOP = CW - PRP
@@ -359,6 +374,26 @@ function mat4x4parallel(vrp, vpn, vup, prp, clip) {
     shxpar = (-DOP_x) / Z;
     shypar = (-DOP_y) / Z
     var shearxy = mat4x4shearxy(shxpar, shypar);
+    // 4.
+    var CW_x = -((clip[0] + clip[1]) / 2);
+    var CW_y = -((clip[2] + clip[3]) / 2);
+    var front = clip[4];
+    var Tpar = mat4x4cwfront(CW_x, CW_y, front);
+    var sparx, spary, sparz;
+    sparx = 2 / (clip[1] - clip[0]);
+    spary = 2 / (clip[2] - clip[3]);
+    sparz = 1 / (clip[4] - clip[5]);
+    var Spar = mat4x4scareparallel(sparx, spary, sparz);
+
+    var TparSpar = Spar.mult(Tpar);
+    //console.log(TparSpar);
+    var TSSHpar = TparSpar.mult(shearxy);
+    //console.log(TSSHpar);
+    var TSSHRpar = TSSHpar.mult(vrc_origin_rotate);
+    //console.log(TSSHRpar);
+    var TSSHRTpar = TSSHRpar.mult(vrp_origin_translate);
+    console.log(TSSHRTpar);
+
 
 }
 
