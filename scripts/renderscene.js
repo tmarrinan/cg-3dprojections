@@ -67,12 +67,25 @@ function DrawScene() {
     var parallel = mat4x4parallel(scene.view.vrp, scene.view.vpn, scene.view.vup, scene.view.prp, scene.view.clip); 
     
     var i, v1, v2;
+    var clipped_vertices = [];
 
     // cliping with Z added 
     // algo that applied the clipping -- mult points(Vector 3) by Nper
     // then multiply transcale my Mper by clipped points
-    for(i = 0; i < scene.models[0].edges.length; i++)  {
-        
+    for(i = 0; i < scene.models[0].vertices.length-1; i++)  {
+        var curvertex1 = scene.models[0].vertices[i];
+        var curvertex2 = scene.models[0].vertices[i+1];
+        var pt1 = {
+            x: curvertex1.x,
+            y: curvertex1.y,
+            z: curvertex1.z
+        }
+        var pt2 = {
+            x: curvertex2.x,
+            y: curvertex2.y,
+            z: curvertex2.z
+        }
+        var clipped = ClipLine(pt1, pt2)
     }  
 
 }

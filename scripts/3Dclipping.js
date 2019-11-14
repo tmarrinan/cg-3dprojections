@@ -45,8 +45,10 @@ function ClipLine(pt0, pt1, view) {
             done = true;
             result.pt0.x = pt0.x;
             result.pt0.y = pt0.y;
+            result.pt0.z = pt0.z;
             result.pt1.x = pt1.x;
             result.pt1.y = pt1.y;
+            result.pt1.z = pt1.z;
         } else if ((outcode0 & outcode1) !== 0) { //Trivial reject 
             done = true;
             result = null;
@@ -69,9 +71,17 @@ function ClipLine(pt0, pt1, view) {
             } else if((selected_outcode & BOT) === BOT) {
                 selected_pt.y = view.y_min;
                 selected_pt.x = (selected_pt.y -b) * (delta_x / delta_y);
-            } else { // we know it's the top
-            selected_pt.y = view.y_max;
-            selected_pt.x = (selected_pt.y -b) * (delta_x / delta_y);
+            } else if((selected_outcode & TOP) === TOP){ // we know it's the top
+                selected_pt.y = view.y_max;
+                selected_pt.x = (selected_pt.y -b) * (delta_x / delta_y);
+            } else if((selected_outcode & FRONT) === FRONT) {
+                selected_pt.z = view.z_max;
+                selected_pt.x = (selected_pt.y -b) * (delta_x / delta_y);
+                selected_pt.y = (delta_y / delta_x) * selected_outcode.x + b;
+            } else { // we know it's gonna be BACK
+                selected_pt.z = view.z_min;
+                selected_pt.x = (selected_pt.y -b) * (delta_x / delta_y);
+                selected_pt.y = (delta_y / delta_x) * selected_outcode.x + b;
             }
             if(outcode0 > 0) {
                 outcode0 = selected_outcode;
