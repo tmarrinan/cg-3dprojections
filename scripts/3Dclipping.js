@@ -1,10 +1,9 @@
-const LEFT, RIGHT, BOT, TOP, FRONT, BACK;
-    LEFT = 32;
-    RIGHT = 16;
-    BOT = 8;
-    TOP  = 4;
-    FRONT = 2;
-    BACK = 1;
+const LEFT = 32;
+const RIGHT = 16;
+const BOT = 8;
+const TOP  = 4;
+const FRONT = 2;
+const BACK = 1;
 
 
 function GetOutCode(pt, view) {
@@ -32,8 +31,8 @@ function ClipLine(pt0, pt1, view) {
         pt0: {},
         pt1: {}
     };
-    var outcode0 = GetOutCode(pt0);
-    var outcode1 = GetOutCode(pt1);
+    var outcode0 = GetOutCode(pt0, view);
+    var outcode1 = GetOutCode(pt1, view);
     var delta_x = pt1.x - pt0.x;
     var delta_y = pt1.y - pt0.y;
     var delta_z = pt1.z - pt0.z;
