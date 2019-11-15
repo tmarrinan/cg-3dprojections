@@ -20,8 +20,6 @@ function Init() {
 
     // initial scene... feel free to change this
     
-    // Animation is in degrees, not radians. 
-    // We have to convert that to radians.
     scene = {
         view: {
             type: 'perspective',
@@ -100,15 +98,12 @@ function DrawScene() {
             tempVertices.push(Matrix.multiply( perspective, scene.models[i].vertices[j]));
         }
 
-        // 2. 
-
+        // 2.
 
         // 3. and 4. 
         for(j = 0; j < tempVertices.length; j++) {
             tempVertices[j] = Matrix.multiply( /*transcale,*/ Mper, tempVertices[j]);
-            //console.log(tempVertices[j].x / tempVertices[j].w, tempVertices[j].y / tempVertices[j].w);
         }
-        //console.log(tempVertices[0].data);
         // 5. 
         for (j = 0; j < scene.models[i].edges.length; j++) {
             var curEdge = scene.models[i].edges[j];

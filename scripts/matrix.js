@@ -421,7 +421,6 @@ function mat4x4perspective(vrp, vpn, vup, prp, clip) {
         [0, 0, 1, -prp.z],
         [0, 0, 0, 1]
     ];
-
     // 4.
     var DOP_x = (clip[0] + clip[1])/2; // center of window on the X
     var DOP_y = (clip[2] + clip[3])/2; // center of window on the Y
@@ -437,7 +436,6 @@ function mat4x4perspective(vrp, vpn, vup, prp, clip) {
         [0, 0, 1, 0],
         [0, 0, 0, 1]
     ];
-
     // 5.
     var VRP_prime = -prp.z;
     var scale_pers_x = ((2 * VRP_prime) / ((clip[1] - clip[0]) * (VRP_prime + clip[5])));
