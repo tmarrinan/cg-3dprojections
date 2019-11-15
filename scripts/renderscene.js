@@ -69,11 +69,51 @@ function DrawScene() {
     // Drawing the scene in our two different perspectives
     var perspective = mat4x4perspective(scene.view.vrp, scene.view.vpn, scene.view.vup, scene.view.prp, scene.view.clip);
     var parallel = mat4x4parallel(scene.view.vrp, scene.view.vpn, scene.view.vup, scene.view.prp, scene.view.clip); 
-    var i, v1, v2;
-    for(i = 0; i < scene.models[0].edges.length; i++)  {
-        
-    }  
+    console.log(perspective); 
+    var i, j, k;
+    var Mper = new Matrix(4,4);
+    Mper.values =[
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, -1, 0]
+    ]
+    var transcale = new Matrix(4,4);
+    transcale.values = [
+        [view.width/2, 0,0,view.width/2],
+        [0, view.height/2, 0, view.height/2],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]
+    ]
+    for(i = 0; i< scene.models.length; i++) {
+        // 1. transform vertices in canonicalVV 
+        // 2. Clip against CVV
+        // 3. Project onto 2D (Mper matrix)
+        // 4. transcale to framebuffer size 
+        // 5. Draw all edges
+        // step 1
+        var tempVertices;
+        tempVertices = [];
+        for(j = 0; j < scene.models[i].vertices.length; j++) {
+            tempVertices.push(Matrix.multiply( perspective, scene.models[i].vertices[j]));
+        }
 
+        // 2.
+
+        // 3. and 4. 
+        for(j = 0; j < tempVertices.length; j++) {
+            tempVertices[j] = Matrix.multiply( /*transcale,*/ Mper, tempVertices[j]);
+        }
+        // 5. 
+        for (j = 0; j < scene.models[i].edges.length; j++) {
+            var curEdge = scene.models[i].edges[j];
+            for (k = 0; k < curEdge.length-1; k++) {
+                var curpt1 = tempVertices[curEdge[k]];
+                var curpt2 = tempVertices[curEdge[k+1]];
+                DrawLine(curpt1.x/curpt1.w, curpt1.y/curpt1.w, curpt2.x/curpt2.w, curpt2.y/curpt2.w);
+            }
+        }
+    }
 } // DrawScene
 
 function DrawThings() {
