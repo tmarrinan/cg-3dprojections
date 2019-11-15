@@ -67,7 +67,7 @@ function DrawScene() {
     var parallel = mat4x4parallel(scene.view.vrp, scene.view.vpn, scene.view.vup, scene.view.prp, scene.view.clip); 
     var i, v1, v2;
     for(i = 0; i < scene.models[0].edges.length; i++)  {
-        v1 = scene.
+        
     }  
 
 }
