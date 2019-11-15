@@ -1,6 +1,12 @@
 var view;
 var ctx;
 var scene;
+const LEFT = 32;
+const RIGHT = 16;
+const BOT = 8;
+const TOP  = 4;
+const FRONT = 2;
+const BACK = 1;
 
 // Initialization function - called when web page loads
 function Init() {
@@ -14,8 +20,6 @@ function Init() {
 
     // initial scene... feel free to change this
     
-    // Animation is in degrees, not radians. 
-    // We have to convert that to radians.
     scene = {
         view: {
             type: 'perspective',
@@ -23,7 +27,7 @@ function Init() {
             vpn: Vector3(1, 0, 1),
             vup: Vector3(0, 1, 0),
             prp: Vector3(14, 20, 26),
-            clip: [-20, 20, -4, 36, 1, -50]
+            clip: [-1, 20, 5, 36, 1, -50]
         },
         models: [
             {
@@ -70,7 +74,96 @@ function DrawScene() {
         
     }  
 
+} // DrawScene
+
+function DrawThings() {
+    
 }
+function GetOutCode(pt, view) {
+    var outcode = 0;
+    if(pt.x < view.x_min) {
+        outcode += LEFT;
+    } else if(pt.x > view.x_max) {
+        outcode += RIGHT;
+    }
+    if(pt.y < view.y_min) {
+        outcode += BOT;
+    } else if(pt.y > view.y_max){
+        outcode += TOP;
+    }
+    if(pt.z < view.z_min) {
+        outcode += BACK;
+    } else if(pt.z > view.z_max) {
+        outcode += FRONT;
+    }
+    return outcode;
+} // GetOutCode
+
+function ClipLine(pt0, pt1, view) {
+    var result = {
+        pt0: {},
+        pt1: {}
+    };
+    var outcode0 = GetOutCode(pt0, view);
+    var outcode1 = GetOutCode(pt1, view);
+    var delta_x = pt1.x - pt0.x;
+    var delta_y = pt1.y - pt0.y;
+    var delta_z = pt1.z - pt0.z;
+    var b = pt0.y - ((delta_y / delta_x) * pt0.x);
+
+    var done = false;
+    while(!done) {
+        if((outcode0 | outcode1) === 0) { // Trivial accept
+            done = true;
+            result.pt0.x = pt0.x;
+            result.pt0.y = pt0.y;
+            result.pt0.z = pt0.z;
+            result.pt1.x = pt1.x;
+            result.pt1.y = pt1.y;
+            result.pt1.z = pt1.z;
+        } else if ((outcode0 & outcode1) !== 0) { //Trivial reject 
+            done = true;
+            result = null;
+        } else {
+            var selected_pt; // we pick a point that is outside the view
+            var selected_outcode;
+            if(outcode0 > 0) {
+                select_pt = pt0;
+                selected_outcode = outcode0;
+            } else {
+                select_pt = pt1;
+                selected_outcode = outcode1;
+            }
+            if((selected_outcode & LEFT) === LEFT) {
+                selected_pt.x = view.x_min;
+                selected_pt.y = (delta_y / delta_x) * selected_outcode.x + b;
+            } else if((selected_outcode & RIGHT) === RIGHT) {
+                selected_pt.x = view.x_max;
+                selected_pt.y = (delta_y / delta_x) * selected_outcode.x + b;
+            } else if((selected_outcode & BOT) === BOT) {
+                selected_pt.y = view.y_min;
+                selected_pt.x = (selected_pt.y -b) * (delta_x / delta_y);
+            } else if((selected_outcode & TOP) === TOP){ // we know it's the top
+                selected_pt.y = view.y_max;
+                selected_pt.x = (selected_pt.y -b) * (delta_x / delta_y);
+            } else if((selected_outcode & FRONT) === FRONT) {
+                selected_pt.z = view.z_max;
+                selected_pt.x = (selected_pt.y -b) * (delta_x / delta_y);
+                selected_pt.y = (delta_y / delta_x) * selected_outcode.x + b;
+            } else { // we know it's gonna be BACK
+                selected_pt.z = view.z_min;
+                selected_pt.x = (selected_pt.y -b) * (delta_x / delta_y);
+                selected_pt.y = (delta_y / delta_x) * selected_outcode.x + b;
+            }
+            if(outcode0 > 0) {
+                outcode0 = selected_outcode;
+            } else {
+                outcode1 = selected_outcode;
+            }
+        }
+    }
+    return result;
+} // ClipLine
 
 // Called when user selects a new scene JSON file
 function LoadNewScene() {
@@ -110,17 +203,33 @@ function LoadNewScene() {
 
 // Called when user presses a key on the keyboard down 
 function OnKeyDown(event) {
+    var i;
     switch (event.keyCode) {
         case 37: // LEFT Arrow
+            for(i =0; i < tempVertices.length; i++) {
+                var newX = tempVertices[i].data[0][0] + 0.001;
+                tempVertices[i].data[0][0] = newX;
+            }
+
             console.log("left");
             break;
         case 38: // UP Arrow
+            for(i =0; i < tempVertices.length; i++) {
+                var newZ = tempVertices[i].data[2][0];
+                
+            }
             console.log("up");
             break;
         case 39: // RIGHT Arrow
+            for(i =0; i < tempVertices.length; i++) {
+                var curX = tempVertices[i].data[0][0];
+            }
             console.log("right");
             break;
         case 40: // DOWN Arrow
+            for(i =0; i < tempVertices.length; i++) {
+                var curX = tempVertices[i].data[2][0];
+            }
             console.log("down");
             break;
     }
