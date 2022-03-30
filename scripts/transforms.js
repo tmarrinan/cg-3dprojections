@@ -1,7 +1,29 @@
 // create a 4x4 matrix to the parallel projection / view matrix
 function mat4x4Parallel(prp, srp, vup, clip) {
     // 1. translate PRP to origin
+
+    let originMatrix = [1, 0, 0, (prp.x * -1),
+                        0, 1, 0, (prp.y * -1),
+                        0, 0, 1, (prp.z * -1),
+                        0, 0, 0, 1];
+
     // 2. rotate VRC such that (u,v,n) align with (x,y,z)
+
+    let nAxis = prp.subtract(srp).normalize();
+    let uAxis = vup.cross(nAxis).normalize();
+    let vAxis = nAxis.cross(uAxis);
+
+    let rMatrix = [u.x, u.y, u.z, 0,
+                    v.x, v.y, v.z, 0,
+                    n.x, n.y, n.z, 0,
+                    0, 0, 0, 1];
+
+
+    let cwValues = [((clip.left + clip.right) / 2), ((clip.bottom + clip.top) / 2), (clip.near * -1)];
+    // let cw = new Vector have to make new vector for cw using matrix.js
+
+
+    
     // 3. shear such that CW is on the z-axis
     // 4. translate near clipping plane to origin
     // 5. scale such that view volume bounds are ([-1,1], [-1,1], [-1,0])
