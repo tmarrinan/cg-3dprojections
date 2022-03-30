@@ -70,7 +70,8 @@ function init() {
     let testSRP = new Vector3(20,15,-40);
     let testVUP = new Vector3(1,1,0);
     let testClip = [-12,6,-12,6,10,100];
-    mat4x4Perspective(testPRP, testSRP, testVUP, testClip);
+    let res = mat4x4Perspective(testPRP, testSRP, testVUP, testClip);
+    console.log(res);
 }
 
 // Animation loop - repeatedly calls rendering code
