@@ -10,7 +10,6 @@ function mat4x4Parallel(prp, srp, vup, clip) {
     // let transform = Matrix.multiply([...]);
     // return transform;
 }
-//tes
 
 // create a 4x4 matrix to the perspective projection / view matrix
 function mat4x4Perspective(prp, srp, vup, clip) {
@@ -54,6 +53,7 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     let scale = new Matrix(4, 4);
     mat4x4Identity(scale);
     Mat4x4Scale(scale, Sper.x, Sper.y, Sper.z);
+    console.log(scale);
     // ...
     //TODO: from here down 2-3 more steps I think.
     // let transform = Matrix.multiply([...]);
