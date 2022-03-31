@@ -189,7 +189,60 @@ function clipLinePerspective(line, z_min) {
     let out0Binary = outcodeToBinary(out0);
     let out1Binary = outcodeToBinary(out1);
     // TODO: Compare the 2 binary outcodes and check for the different clipping cases
+    let sequence = null;
+    // Check LEFT plane
+
     return result;
+}
+
+// Tentative, not sure if this will work
+/**
+ * This function is given the bits of the 2 outcodes and the line vertices. It uses the 2
+ * outcodes to compare and contrast for the 4 different cases of clipping afterward it would output
+ * sequence of point or points that is clipped.
+ * @param out0 the given bit of the first outcode
+ * @param out1 the given bit of the second outcode
+ * @param p0 the first point from the given line
+ * @param p1 the second point from the given line
+ * @return outSequence will either be null, a point, or two points depending on the cases
+ */
+function updateClipPerspective(out0, out1, p0, p1) {
+    let outSequence = null;
+    let cases = null;
+
+    // case 1; Trivial accept; bit: 0 | 0 == 0
+    if(out0 == 0 && out1 == 0) {
+        cases = "zeros";
+    }
+
+    // case 2; Trivial reject; bit: 1 & 1 != 0
+    if(out0 == 1 && out1 == 1) {
+        cases = "ones";
+    }
+
+    // case 3; Investigate further; bit = 0 1
+    if(out0 == 0 && out1 == 1) {
+        cases = "zeroOne";
+    }
+
+    // case 4; Investigate further; bit = 1 0
+    if(out0 == 1 && out1 == 0) {
+        cases = "oneZero";
+    }
+
+    switch (cases) {
+        case "zeros":
+            // TODO: add p1 to output sequence
+            break;
+        case "ones":
+            line = null;
+            break;
+        case "zeroOne":
+            // TODO: add intersection point to sequence
+            break;
+        case "oneZero":
+            // TODO: add intersection point and p1 to sequence
+    }
 }
 
 /**
