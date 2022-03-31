@@ -139,6 +139,7 @@ function outcodeParallel(vertex) {
     return outcode;
 }
 
+
 // Get outcode for vertex (perspective view volume)
 function outcodePerspective(vertex, z_min) {
     let outcode = 0;
