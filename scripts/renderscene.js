@@ -66,12 +66,26 @@ function init() {
     start_time = performance.now(); // current timestamp in milliseconds
     window.requestAnimationFrame(animate);
 
+
+ /*
+    Tested reference perspective model; Working properly
     let testPRP = new Vector3(0,10,-5);
     let testSRP = new Vector3(20,15,-40);
     let testVUP = new Vector3(1,1,0);
     let testClip = [-12,6,-12,6,10,100];
     let res = mat4x4Perspective(testPRP, testSRP, testVUP, testClip);
-    console.log(res);
+ */
+    // Testing binary output for the clipping function
+    let num = 62;
+    let binary = outcodeToBinary(num);
+    console.log(binary);
+    console.log(checkLeftOut(binary));
+    console.log(checkRightOut(binary));
+    console.log(checkBottomOut(binary));
+    console.log(checkTopOut(binary));
+    console.log(checkFarOut(binary));
+    console.log(checkNearOut(binary));
+
 }
 
 // Animation loop - repeatedly calls rendering code
@@ -93,7 +107,6 @@ function animate(timestamp) {
 // Main drawing code - use information contained in variable `scene`
 function drawScene() {
     console.log(scene);
-    
     // TODO: implement drawing here!
     // For each model, for each edge
     //  * transform to canonical view volume
@@ -170,10 +183,104 @@ function clipLinePerspective(line, z_min) {
     let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
     let out0 = outcodePerspective(p0, z_min);
     let out1 = outcodePerspective(p1, z_min);
-    
+
     // TODO: implement clipping here!
-    
+    // Convert the 2 given outcode into binary form
+    let out0Binary = outcodeToBinary(out0);
+    let out1Binary = outcodeToBinary(out1);
+    // TODO: Compare the 2 binary outcodes and check for the different clipping cases
     return result;
+}
+
+/**
+ * This function return the binary string of a given outcode. It also ensure that the length of the string
+ * is equal to 6, otherwise, insert 0 to the front of the string
+ * @param out the given outcode to convert into binary
+ * @return the binary string of the given outcode
+ */
+function outcodeToBinary(out) {
+    let binary = out.toString(2);
+    while(binary.length < 6) {
+        binary = 0 + binary;
+    }
+    return binary;
+}
+
+/**
+ * This function return 1 if the given vertex has a LEFT outcode
+ * @param binaryOut the given binary string used to compare for the LEFT outcode
+ * @return 1 if it has a LEFT outcode and 0 otherwise
+ */
+function checkLeftOut(binaryOut) {
+    let output = 0;
+    if(binaryOut.charAt(0) == 1) {
+        output = 1;
+    }
+    return output;
+}
+
+/**
+ * This function return 1 if the given vertex has a RIGHT outcode
+ * @param binaryOut the given binary string used to compare for the RIGHT outcode
+ * @return 1 if it has a RIGHT outcode and 0 otherwise
+ */function checkRightOut(binaryOut) {
+    let output = 0;
+    if(binaryOut.charAt(1) == 1) {
+        output = 1;
+    }
+    return output;
+ }
+
+/**
+ * This function return 1 if the given vertex has a BOTTOM outcode
+ * @param binaryOut the given binary string used to compare for the BOTTOM outcode
+ * @return 1 if it has a BOTTOM outcode and 0 otherwise
+ */
+function checkBottomOut(binaryOut) {
+    let output = 0;
+    if(binaryOut.charAt(2) == 1) {
+        output = 1;
+    }
+    return output;
+}
+
+/**
+ * This function return 1 if the given vertex has a TOP outcode
+ * @param binaryOut the given binary string used to compare for the TOP outcode
+ * @return 1 if it has a TOP outcode and 0 otherwise
+ */
+function checkTopOut(binaryOut) {
+    let output = 0;
+    if(binaryOut.charAt(3) == 1) {
+        output = 1;
+    }
+    return output;
+}
+
+/**
+ * This function return 1 if the given vertex has a FAR outcode
+ * @param binaryOut the given binary string used to compare for the FAR outcode
+ * @return 1 if it has a FAR outcode and 0 otherwise
+ */
+function checkFarOut(binaryOut) {
+    let output = 0;
+    if(binaryOut.charAt(4) == 1) {
+        output = 1;
+    }
+    return output;
+}
+
+/**
+ * This function return 1 if the given vertex has a NEAR outcode
+ * @param binaryOut the given binary string used to compare for the NEAR outcode
+ * @return 1 if it has a NEAR outcode and 0 otherwise
+ */
+function checkNearOut(binaryOut) {
+    let output = 0;
+    if(binaryOut.charAt(5) == 1) {
+        output = 1;
+    }
+    return output;
 }
 
 // Called when user presses a key on the keyboard down 
