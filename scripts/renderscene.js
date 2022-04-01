@@ -103,7 +103,7 @@ function drawScene() {
     let mPer = mat4x4MPer();
     let matrix = mPer.mult(nPer);
     for (let i = 0; i < scene.models.length; i++){
-        for (let i = 0; i < scene.models.edges.length; i++) {
+        for (let j = 0; j < scene.models.edges.length; j++) {
 
         }
     }
