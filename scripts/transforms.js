@@ -9,6 +9,44 @@ function mat4x4Parallel(prp, srp, vup, clip) {
     // ...
     // let transform = Matrix.multiply([...]);
     // return transform;
+    var tPRP = new Matrix(4, 4);
+    tPRP.values = [[1, 0, 0, -prp.x], 
+                    [0, 1, 0, -prp.y], 
+                    [0, 0, 1, -prp.z], 
+                    [0, 0, 0, 1]];
+    
+    var n = prp.subtract(srp).normalize();
+    var u = vup.cross(n).normalize();
+    var v = n.cross(u);
+
+    var rVRC = new Matrix(4, 4);
+    rVRC.values = [[u.x, u.y, u.z, 0], 
+                    [v.x, v.y, v.z, 0], 
+                    [n.x, n.y, n.z, 0], 
+                    [0, 0, 0, 1]];
+    var cw = new Vector3();
+    cw.values = [(clip[0] + c[1])/2, (c[2] + c[3])/2, -c[4]];
+    var dop = cw.subtract(prp);
+    var sh = new Matrix(4, 4);
+    sh.values = [[1, 0, -dop.x/dop.z, 0], 
+                [0, 1, -dop.y/dop.z, 0], 
+                [0, 0, 1, 0], 
+                [0, 0, 0, 1]];
+
+    var tPar = new Matrix(4, 4);
+    tPar.values = [[1, 0, 0, 0], 
+                    [0, 1, 0, 0], 
+                    [0, 0, 1, c[4]], 
+                    [0, 0, 0, 1]];
+
+    var sPar = new Matrix(4, 4);
+    sPar = [[2/(c[1] - c[0]), 0, 0, 0], 
+            [0, 2/(c[3] - c[2]), 0, 0], 
+            [0, 0, 1/c[5], 0], 
+            [0, 0, 0, 1]];
+    
+    var transform = Matrix.multiply([sPar, tPar, sh, tPRP]);
+    return transform;
 }
 
 // create a 4x4 matrix to the perspective projection / view matrix
@@ -21,6 +59,43 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     // ...
     // let transform = Matrix.multiply([...]);
     // return transform;
+    var tPRP = new Matrix(4, 4);
+    tPRP.values = [[1, 0, 0, -prp.x], 
+                    [0, 1, 0, -prp.y], 
+                    [0, 0, 1, -prp.z], 
+                    [0, 0, 0, 1]];
+    
+    var n = prp.subtract(srp).normalize();
+    var u = vup.cross(n).normalize();
+    var v = n.cross(u);
+
+    var rVRC = new Matrix(4, 4);
+    rVRC.values = [[u.x, u.y, u.z, 0], 
+                    [v.x, v.y, v.z, 0], 
+                    [n.x, n.y, n.z, 0], 
+                    [0, 0, 0, 1]];
+    var cw = new Vector3();
+    cw.values = [(clip[0] + c[1])/2, (c[2] + c[3])/2, -c[4]];
+    var dop = cw.subtract(prp);
+    var sh = new Matrix(4, 4);
+    sh.values = [[1, 0, -dop.x/dop.z, 0], 
+                [0, 1, -dop.y/dop.z, 0], 
+                [0, 0, 1, 0], 
+                [0, 0, 0, 1]];
+
+    var sPer = [[2 * c[4] / ((c[1] - c[0]) * c[5]), 0, 0, 0], 
+                [0, 2 * c[4] / ((c[3] - c[2]) * c[5]), 0, 0], 
+                [0, 0, 1 / c[5], 0], 
+                [0, 0, 0, 1]];
+
+    var mPer = new Matrix(4, 4);
+    mPer.values = [[1, 0, 0, 0], 
+                    [0, 1, 0, 0], 
+                    [0, 0, 1, 0], 
+                    [0, 0, -1, 0]];
+    
+    var transform = Matrix.multiply([sPer, sh, rVRC, tPRP]);
+    return transform;
 }
 
 // create a 4x4 matrix to project a parallel image on the z=0 plane
