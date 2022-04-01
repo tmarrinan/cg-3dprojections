@@ -75,16 +75,6 @@ function init() {
     let testClip = [-12,6,-12,6,10,100];
     let res = mat4x4Perspective(testPRP, testSRP, testVUP, testClip);
  */
-    // Testing binary output for the clipping function
-    let num = 62;
-    let binary = outcodeToBinary(num);
-    console.log(binary);
-    console.log(checkLeftOut(binary));
-    console.log(checkRightOut(binary));
-    console.log(checkBottomOut(binary));
-    console.log(checkTopOut(binary));
-    console.log(checkFarOut(binary));
-    console.log(checkNearOut(binary));
 
 }
 
@@ -172,7 +162,7 @@ function clipLineParallel(line) {
     let out1 = outcodeParallel(p1);
     
     // TODO: implement clipping here!
-    
+
     return result;
 }
 
@@ -184,156 +174,68 @@ function clipLinePerspective(line, z_min) {
     let out0 = outcodePerspective(p0, z_min);
     let out1 = outcodePerspective(p1, z_min);
 
-    // TODO: implement clipping here!
-    // Convert the 2 given outcode into binary form
-    let out0Binary = outcodeToBinary(out0);
-    let out1Binary = outcodeToBinary(out1);
-    // TODO: Compare the 2 binary outcodes and check for the different clipping cases
-    let sequence = null;
-    // Check LEFT plane
+    // Keep looping until case is either accept or reject
+    while(true) {
+        // Case 1: Trivial Accept. Return the line as it is
+        if((out0 | out1) == 0) {
+            result = line;
+            break;
+        }
+        // Case 2: Trivial Reject. Return null
+        else if((out0 & out1) != 0) {
+            // Just break and do nothing since result was already initialize to null
+            break;
+        } else {
+            // BOUNDS: LEFT = Z, RIGHT = -Z, BOTTOM =
+            let outcode = null;
+            let x,y,z = null;
+            let t = null;
+
+            // At least one of the two outcode is != 0 meaning outside the view volume.
+            if(out0 != 0) {
+                outcode = out0;
+            } else {
+                outcode = out1;
+            }
+
+            // TODO: find intersection point to set for new line.
+            // Check via LEFT plane
+            if(outcode & LEFT) {
+                t = (-p0.x + p0.z) / ((p1.x - p0.x) - (p1.z - p0.z));
+
+            }
+            // Check via RIGHT plane
+            else if(outcode & RIGHT) {
+                                    // Flipped points for negative change in slope
+                t = (p0.x + p0.z) / ((p0.x - p1.x) - (p0.z - p1.z));
+
+            }
+            // Check via BOTTOM plane
+            else if(outcode & BOTTOM) {
+                t = (-p0.y + p0.z) / ((p1.y - p0.y) - (p1.z - p0.z));
+
+            }
+            // Check via TOP plane
+            else if(outcode & TOP) {
+                                    // Flipped points for negative change in slope
+                t = (p0.y + p0.z) / ((p0.y - p1.y) - (p0.z - p1.z));
+
+            }
+            // Check via FAR plane
+            else if(outcode & FAR) {
+                // Flipped points for negative change in slope
+                t = (p0.z - z_min) / (p0.z- p1.z);
+            }
+            // Check via NEAR plane
+            else {
+                t = (-p0.z - 1) / (p1.z- p0.z);
+
+            }
+
+        }
+    }
 
     return result;
-}
-
-// Tentative, not sure if this will work
-/**
- * This function is given the bits of the 2 outcodes and the line vertices. It uses the 2
- * outcodes to compare and contrast for the 4 different cases of clipping afterward it would output
- * sequence of point or points that is clipped.
- * @param out0 the given bit of the first outcode
- * @param out1 the given bit of the second outcode
- * @param p0 the first point from the given line
- * @param p1 the second point from the given line
- * @return outSequence will either be null, a point, or two points depending on the cases
- */
-function updateClipPerspective(out0, out1, p0, p1) {
-    let outSequence = null;
-    let cases = null;
-
-    // case 1; Trivial accept; bit: 0 | 0 == 0
-    if(out0 == 0 && out1 == 0) {
-        cases = "zeros";
-    }
-
-    // case 2; Trivial reject; bit: 1 & 1 != 0
-    if(out0 == 1 && out1 == 1) {
-        cases = "ones";
-    }
-
-    // case 3; Investigate further; bit = 0 1
-    if(out0 == 0 && out1 == 1) {
-        cases = "zeroOne";
-    }
-
-    // case 4; Investigate further; bit = 1 0
-    if(out0 == 1 && out1 == 0) {
-        cases = "oneZero";
-    }
-
-    switch (cases) {
-        case "zeros":
-            // TODO: add p1 to output sequence
-            break;
-        case "ones":
-            line = null;
-            break;
-        case "zeroOne":
-            // TODO: add intersection point to sequence
-            break;
-        case "oneZero":
-            // TODO: add intersection point and p1 to sequence
-    }
-}
-
-/**
- * This function return the binary string of a given outcode. It also ensure that the length of the string
- * is equal to 6, otherwise, insert 0 to the front of the string
- * @param out the given outcode to convert into binary
- * @return the binary string of the given outcode
- */
-function outcodeToBinary(out) {
-    let binary = out.toString(2);
-    while(binary.length < 6) {
-        binary = 0 + binary;
-    }
-    return binary;
-}
-
-/**
- * This function return 1 if the given vertex has a LEFT outcode
- * @param binaryOut the given binary string used to compare for the LEFT outcode
- * @return 1 if it has a LEFT outcode and 0 otherwise
- */
-function checkLeftOut(binaryOut) {
-    let output = 0;
-    if(binaryOut.charAt(0) == 1) {
-        output = 1;
-    }
-    return output;
-}
-
-/**
- * This function return 1 if the given vertex has a RIGHT outcode
- * @param binaryOut the given binary string used to compare for the RIGHT outcode
- * @return 1 if it has a RIGHT outcode and 0 otherwise
- */function checkRightOut(binaryOut) {
-    let output = 0;
-    if(binaryOut.charAt(1) == 1) {
-        output = 1;
-    }
-    return output;
- }
-
-/**
- * This function return 1 if the given vertex has a BOTTOM outcode
- * @param binaryOut the given binary string used to compare for the BOTTOM outcode
- * @return 1 if it has a BOTTOM outcode and 0 otherwise
- */
-function checkBottomOut(binaryOut) {
-    let output = 0;
-    if(binaryOut.charAt(2) == 1) {
-        output = 1;
-    }
-    return output;
-}
-
-/**
- * This function return 1 if the given vertex has a TOP outcode
- * @param binaryOut the given binary string used to compare for the TOP outcode
- * @return 1 if it has a TOP outcode and 0 otherwise
- */
-function checkTopOut(binaryOut) {
-    let output = 0;
-    if(binaryOut.charAt(3) == 1) {
-        output = 1;
-    }
-    return output;
-}
-
-/**
- * This function return 1 if the given vertex has a FAR outcode
- * @param binaryOut the given binary string used to compare for the FAR outcode
- * @return 1 if it has a FAR outcode and 0 otherwise
- */
-function checkFarOut(binaryOut) {
-    let output = 0;
-    if(binaryOut.charAt(4) == 1) {
-        output = 1;
-    }
-    return output;
-}
-
-/**
- * This function return 1 if the given vertex has a NEAR outcode
- * @param binaryOut the given binary string used to compare for the NEAR outcode
- * @return 1 if it has a NEAR outcode and 0 otherwise
- */
-function checkNearOut(binaryOut) {
-    let output = 0;
-    if(binaryOut.charAt(5) == 1) {
-        output = 1;
-    }
-    return output;
 }
 
 // Called when user presses a key on the keyboard down 
