@@ -99,6 +99,16 @@ function drawScene() {
     console.log(scene);
     // TODO: implement drawing here!
     // For each model, for each edge
+    let nPer = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
+    let mPer = mat4x4MPer();
+    let matrix = mPer.mult(nPer);
+    for (let i = 0; i < scene.models.length; i++){
+        for (let i = 0; i < scene.models.edges.length; i++) {
+
+        }
+    }
+
+
     //  * transform to canonical view volume
     //  * clip in 3D
     //  * project to 2D
