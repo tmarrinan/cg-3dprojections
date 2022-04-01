@@ -69,14 +69,6 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     // Multiply the array of matrices and solve for nPer
     let transform = Matrix.multiply(matrices);
 
-    // Create a new array to multiply mPer and nPer
-    let final = new Array();
-    let mPer = mat4x4MPer();
-    final.push(mPer);
-    final.push(transform);
-
-    // Multiply mPer and nPer together
-    transform = Matrix.multiply(final);
     return transform;
 }
 
