@@ -34,21 +34,21 @@ function init() {
             {
                 type: 'generic',
                 vertices: [
-                    Vector4( 0,  0, -30, 1),
-                    Vector4(20,  0, -30, 1),
-                    Vector4(20, 12, -30, 1),
-                    Vector4(10, 20, -30, 1),
-                    Vector4( 0, 12, -30, 1),
-                    Vector4( 0,  0, -60, 1),
-                    Vector4(20,  0, -60, 1),
-                    Vector4(20, 12, -60, 1),
-                    Vector4(10, 20, -60, 1),
-                    Vector4( 0, 12, -60, 1)
+                    Vector4( 0,  0, -30, 1), // 0
+                    Vector4(20,  0, -30, 1), // 1
+                    Vector4(20, 12, -30, 1), // 2
+                    Vector4(10, 20, -30, 1), // 3
+                    Vector4( 0, 12, -30, 1), // 4
+                    Vector4( 0,  0, -60, 1), // 5
+                    Vector4(20,  0, -60, 1), // 6
+                    Vector4(20, 12, -60, 1), // 7 
+                    Vector4(10, 20, -60, 1), // 8
+                    Vector4( 0, 12, -60, 1)  // 9
                 ],
                 edges: [
-                    [0, 1, 2, 3, 4, 0],
-                    [5, 6, 7, 8, 9, 5],
-                    [0, 5],
+                    [0, 1, 2, 3, 4, 0], // [0,1] [1,2] [2,3] [3,4] [4,0]
+                    [5, 6, 7, 8, 9, 5], // [5,6] [6,7] [7,8] [8,9] [9,5]
+                    [0, 5], 
                     [1, 6],
                     [2, 7],
                     [3, 8],
@@ -101,18 +101,42 @@ function drawScene() {
     // For each model, for each edge
     let nPer = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
     let mPer = mat4x4MPer();
+    // equivalent to mPer * nPer
     let matrix = mPer.mult(nPer);
-    for (let i = 0; i < scene.models.length; i++){
-        for (let j = 0; j < scene.models.edges.length; j++) {
+    let vertices = []; // array of all vertices
 
+    for (let i = 0; i < scene.models.length; i++){
+        for (let j = 0; j < scene.models.verticies.length; j++) {
+            // vertex[0].mult(matrix);
+            vertices[j] = scene.models.vertices[j].mult(matrix);
         }
     }
 
+    // For loop iterate and access all the given vertices
+    // Use the given vertices and multiply it by matrix(mPer * nPer)
+    for (let i = 0; i < scene.models.length; i++){
+        for (let j = 0; j < scene.models.edges.length-1; j++) {
+            //[0,1,2,3,4]
+            let p1 = scene.models.edges[j];
+            let p2 = scene.models.edges[j+1];
+            //create line
+            //clip
+            //drawLine(clipped.p1, clipped.p2)
+        }
+    }
 
-    //  * transform to canonical view volume
-    //  * clip in 3D
-    //  * project to 2D
-    //  * draw line
+    /* How to create the line
+    let pt0 = Vector3(2,2,2);
+    let pt1 = Vector3(-5,10,20);
+    let line = {pt0, pt1}; 
+    clip(line, z_min)
+    */
+
+    //  * transform to canonical view volume    nPer
+    //  * clip in 3D                            clip
+    //  * project to 2D                        
+    //  * draw line                             drawLine()
+
 }
 
 // Get outcode for vertex (parallel view volume)
