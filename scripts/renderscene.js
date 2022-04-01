@@ -75,7 +75,6 @@ function init() {
     let testClip = [-12,6,-12,6,10,100];
     let res = mat4x4Perspective(testPRP, testSRP, testVUP, testClip);
  */
-    console.log(16 & RIGHT);
 
 }
 
@@ -192,75 +191,100 @@ function clipLinePerspective(line, z_min) {
             let x,y,z = null;
             let t = null;
 
-            // At least one of the two outcode is != 0 meaning outside the view volume.
+            // At least one of the two outcode is != 0 meaning its vertex is outside the view volume.
             if(out0 != 0) {
                 outcode = out0;
             } else {
                 outcode = out1;
             }
 
-            // Check via LEFT plane
+            // Check via LEFT plane, calculate its new interception points and decrement outcode
             if(outcode & LEFT) {
                 t = (-p0.x + p0.z) / ((p1.x - p0.x) - (p1.z - p0.z));
+
                 x = ((1-t) * p0.x) + (t * p1.x);
                 y = ((1-t) * p0.y) + (t * p1.y);
                 z = ((1-t) * p0.z) + (t * p1.z);
+
+                outcode -= LEFT;
             }
-            // Check via RIGHT plane
+            // Check via RIGHT plane, calculate its new interception points and decrement outcode
             else if(outcode & RIGHT) {
                                     // Flipped points for negative change in slope
                 t = (p0.x + p0.z) / ((p0.x - p1.x) - (p0.z - p1.z));
+
                 x = ((1-t) * p0.x) + (t * p1.x);
                 y = ((1-t) * p0.y) + (t * p1.y);
                 z = ((1-t) * p0.z) + (t * p1.z);
+
+                outcode -= RIGHT;
+
             }
-            // Check via BOTTOM plane
+            // Check via BOTTOM plane, calculate its new interception points and decrement outcode
             else if(outcode & BOTTOM) {
                 t = (-p0.y + p0.z) / ((p1.y - p0.y) - (p1.z - p0.z));
+
                 x = ((1-t) * p0.x) + (t * p1.x);
                 y = ((1-t) * p0.y) + (t * p1.y);
                 z = ((1-t) * p0.z) + (t * p1.z);
+
+                outcode -= BOTTOM;
+
             }
-            // Check via TOP plane
+            // Check via TOP plane, calculate its new interception points and decrement outcode
             else if(outcode & TOP) {
                                     // Flipped points for negative change in slope
                 t = (p0.y + p0.z) / ((p0.y - p1.y) - (p0.z - p1.z));
+
                 x = ((1-t) * p0.x) + (t * p1.x);
                 y = ((1-t) * p0.y) + (t * p1.y);
                 z = ((1-t) * p0.z) + (t * p1.z);
+
+                outcode -= TOP;
             }
-            // Check via FAR plane
+            // Check via FAR plane, calculate its new interception points and decrement outcode
             else if(outcode & FAR) {
                 // Flipped points for negative change in slope
                 t = (p0.z - z_min) / (p0.z- p1.z);
+
                 x = ((1-t) * p0.x) + (t * p1.x);
                 y = ((1-t) * p0.y) + (t * p1.y);
                 z = ((1-t) * p0.z) + (t * p1.z);
+
+                outcode -= FAR;
             }
-            // Check via NEAR plane
+            // Check via NEAR plane, calculate its new interception points and decrement outcode
             else {
                 t = (-p0.z - 1) / (p1.z- p0.z);
+
                 x = ((1-t) * p0.x) + (t * p1.x);
                 y = ((1-t) * p0.y) + (t * p1.y);
                 z = ((1-t) * p0.z) + (t * p1.z);
+
+                outcode -= NEAR;
             }
 
+            // Check if outcode is out0, if so change out0 to become the new outcode
+            // and its p0 to the new (x,y,z)
             if(outcode == out1) {
                 p0.x = x;
                 p0.y = y;
                 p0.z = z;
                 out0 = outcode;
-            } else {
+            }
+            // Else, it do the same but for out1
+            else {
                 p1.x = x;
                 p1.y = y;
                 p1.z = z;
                 out1 = outcode;
             }
+
+            line.pt0 = p0;
+            line.pt1 = p1;
+            result = line;
         }
     }
-    line.pt0 = p0;
-    line.pt1 = p1;
-    result = line;
 
     return result;
 }
