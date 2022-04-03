@@ -46,10 +46,10 @@ function init() {
                     Vector4( 0, 12, -60, 1)  // 9
                 ],
                 edges: [
-                    [0, 1, 2, 3, 4, 0], // [0,1] [1,2] [2,3] [3,4] [4,0]
-                    [5, 6, 7, 8, 9, 5], // [5,6] [6,7] [7,8] [8,9] [9,5]
-                    [0, 5], 
-                    [1, 6],
+                    [0, 1, 2, 3, 4, 0], // [0,1] [1,2] [2,3] [3,4] [4,0] // 0
+                    [5, 6, 7, 8, 9, 5], // [5,6] [6,7] [7,8] [8,9] [9,5] // 1
+                    [0, 5], // 2 
+                    [1, 6], // 3
                     [2, 7],
                     [3, 8],
                     [4, 9]
@@ -103,9 +103,10 @@ function drawScene() {
     let mPer = mat4x4MPer();
     // equivalent to mPer * nPer
     let matrix = mPer.mult(nPer);
-    let vertices = []; // array of all vertices
+    let vertices = []; // array of all vertices that is multiplied by nPer and mPer
     
-    //for vertices
+    // For loop iterate and access all the given vertices
+    // Use the given vertices and multiply it by matrix(mPer * nPer)
     for (let i = 0; i < scene.models.length; i++){
         for (let j = 0; j < scene.models[i].vertices.length; j++) {
             vertices[j] = matrix.mult(scene.models[i].vertices[j]);
@@ -114,19 +115,17 @@ function drawScene() {
         }
     }
 
-    // For loop iterate and access all the given vertices
-    // Use the given vertices and multiply it by matrix(mPer * nPer)
     for (let i = 0; i < scene.models.length; i++){
         for (let j = 0; j < scene.models[i].edges.length; j++) {
             for (let k = 0; k < scene.models[i].edges[j].length-1; k++) {
                 //[0,1,2,3,4]
-                let pt0 = scene.models[i].edges[j][k];
-                let pt1 = scene.models[i].edges[j][k+1];
+                let pt0 = vertices[scene.models[i].edges[j][k]];
+                let pt1 = vertices[scene.models[i].edges[j][k + 1]];
                 //create line
-                let line = {pt0: pt0, pt1: pt1};
+                let line = {pt0, pt1};
                 console.log(line);
                 //clip
-                console.log((-1*scene.view.clip[4]) / scene.view.clip[5]);
+                //console.log((-1*scene.view.clip[4]) / scene.view.clip[5]);
                 let new_line = clipLinePerspective(line, (-1*scene.view.clip[4]) / scene.view.clip[5]);
                 //drawLine(clipped.p1, clipped.p2)
                 //console.log(new_line);
@@ -220,7 +219,6 @@ function clipLinePerspective(line, z_min) {
     let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
     let out0 = outcodePerspective(p0, z_min);
     let out1 = outcodePerspective(p1, z_min);
-
     // Keep looping until case is either accept or reject
     while(true) {
         // Case 1: Trivial Accept. Return the line as it is
@@ -230,7 +228,7 @@ function clipLinePerspective(line, z_min) {
         }
         // Case 2: Trivial Reject. Return null
         else if((out0 & out1) != 0) {
-            // Just break and do nothing since result was already initialize to null
+            result = null;
             break;
         } else {
             // BOUNDS: LEFT = z, RIGHT = -z, BOTTOM y = z, TOP = -z, FAR z = 1, NEAR z = z_min
@@ -252,8 +250,6 @@ function clipLinePerspective(line, z_min) {
                 x = ((1-t) * p0.x) + (t * p1.x);
                 y = ((1-t) * p0.y) + (t * p1.y);
                 z = ((1-t) * p0.z) + (t * p1.z);
-
-                outcode -= LEFT;
             }
             // Check via RIGHT plane, calculate its new interception points and decrement outcode
             else if(outcode & RIGHT) {
@@ -263,9 +259,6 @@ function clipLinePerspective(line, z_min) {
                 x = ((1-t) * p0.x) + (t * p1.x);
                 y = ((1-t) * p0.y) + (t * p1.y);
                 z = ((1-t) * p0.z) + (t * p1.z);
-
-                outcode -= RIGHT;
-
             }
             // Check via BOTTOM plane, calculate its new interception points and decrement outcode
             else if(outcode & BOTTOM) {
@@ -274,9 +267,6 @@ function clipLinePerspective(line, z_min) {
                 x = ((1-t) * p0.x) + (t * p1.x);
                 y = ((1-t) * p0.y) + (t * p1.y);
                 z = ((1-t) * p0.z) + (t * p1.z);
-
-                outcode -= BOTTOM;
-
             }
             // Check via TOP plane, calculate its new interception points and decrement outcode
             else if(outcode & TOP) {
@@ -286,8 +276,6 @@ function clipLinePerspective(line, z_min) {
                 x = ((1-t) * p0.x) + (t * p1.x);
                 y = ((1-t) * p0.y) + (t * p1.y);
                 z = ((1-t) * p0.z) + (t * p1.z);
-
-                outcode -= TOP;
             }
             // Check via FAR plane, calculate its new interception points and decrement outcode
             else if(outcode & FAR) {
@@ -297,8 +285,7 @@ function clipLinePerspective(line, z_min) {
                 x = ((1-t) * p0.x) + (t * p1.x);
                 y = ((1-t) * p0.y) + (t * p1.y);
                 z = ((1-t) * p0.z) + (t * p1.z);
-
-                outcode -= FAR;
+                console.log("here");
             }
             // Check via NEAR plane, calculate its new interception points and decrement outcode
             else {
@@ -307,24 +294,22 @@ function clipLinePerspective(line, z_min) {
                 x = ((1-t) * p0.x) + (t * p1.x);
                 y = ((1-t) * p0.y) + (t * p1.y);
                 z = ((1-t) * p0.z) + (t * p1.z);
-
-                outcode -= NEAR;
             }
 
             // Check if outcode is out0, if so change out0 to become the new outcode
             // and its p0 to the new (x,y,z)
-            if(outcode == out1) {
+            if(outcode == out0) {
                 p0.x = x;
                 p0.y = y;
                 p0.z = z;
-                out0 = outcode;
+                out0 = outcodePerspective(p0,z_min);
             }
             // Else, it do the same but for out1
             else {
                 p1.x = x;
                 p1.y = y;
                 p1.z = z;
-                out1 = outcode;
+                out1 = outcodePerspective(p1,z_min);
             }
 
             line.pt0 = p0;
@@ -335,6 +320,7 @@ function clipLinePerspective(line, z_min) {
 
     return result;
 }
+
 
 // Called when user presses a key on the keyboard down 
 function onKeyDown(event) {
