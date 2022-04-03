@@ -19,7 +19,7 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     let translate = new Matrix(4, 4);
     mat4x4Identity(translate);
     // This line is equivalent to T(-prp);
-    Mat4x4Translate(translate, negPRP.x, negPRP.y, negPRP.z);
+    mat4x4Translate(translate, negPRP.x, negPRP.y, negPRP.z);
 
     // 2. rotate VRC such that (u,v,n) align with (x,y,z)
     let n = prp.subtract(srp);
@@ -50,13 +50,13 @@ function mat4x4Perspective(prp, srp, vup, clip) {
 
     let shear = new Matrix(4, 4);
     mat4x4Identity(shear);
-    Mat4x4ShearXY(shear, shx, shy);
+    mat4x4ShearXY(shear, shx, shy);
 
     // 4. scale such that view volume bounds are ([z,-z], [z,-z], [-1,zmin])
     let Sper = new Vector3((2 * near) / ((right - left) * far), (2 * near) / ((top - bottom) * far), (1/far));
     let scale = new Matrix(4, 4);
     mat4x4Identity(scale);
-    Mat4x4Scale(scale, Sper.x, Sper.y, Sper.z);
+    mat4x4Scale(scale, Sper.x, Sper.y, Sper.z);
 
     // Create an array of Matrices
     let matrices = new Array();

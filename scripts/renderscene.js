@@ -104,24 +104,37 @@ function drawScene() {
     // equivalent to mPer * nPer
     let matrix = mPer.mult(nPer);
     let vertices = []; // array of all vertices
-
+    
+    //for vertices
     for (let i = 0; i < scene.models.length; i++){
-        for (let j = 0; j < scene.models.verticies.length; j++) {
-            // vertex[0].mult(matrix);
-            vertices[j] = scene.models.vertices[j].mult(matrix);
+        for (let j = 0; j < scene.models[i].vertices.length; j++) {
+            vertices[j] = matrix.mult(scene.models[i].vertices[j]);
+           // vertices[j] = scene.models[i].vertices[j].mult(matrix);
+           console.log(vertices[j]);
         }
     }
 
     // For loop iterate and access all the given vertices
     // Use the given vertices and multiply it by matrix(mPer * nPer)
     for (let i = 0; i < scene.models.length; i++){
-        for (let j = 0; j < scene.models.edges.length-1; j++) {
-            //[0,1,2,3,4]
-            let p1 = scene.models.edges[j];
-            let p2 = scene.models.edges[j+1];
-            //create line
-            //clip
-            //drawLine(clipped.p1, clipped.p2)
+        for (let j = 0; j < scene.models[i].edges.length; j++) {
+            for (let k = 0; k < scene.models[i].edges[j].length-1; k++) {
+                //[0,1,2,3,4]
+                let pt0 = scene.models[i].edges[j][k];
+                let pt1 = scene.models[i].edges[j][k+1];
+                //create line
+                let line = {pt0: pt0, pt1: pt1};
+                console.log(line);
+                //clip
+                console.log((-1*scene.view.clip[4]) / scene.view.clip[5]);
+                let new_line = clipLinePerspective(line, (-1*scene.view.clip[4]) / scene.view.clip[5]);
+                //drawLine(clipped.p1, clipped.p2)
+                //console.log(new_line);
+                let w1 = new_line.pt0[2];
+                let w2 = new_line.pt1[2];
+                drawLine(new_line.pt0[0]/w1, new_line.pt0[1]/w1, new_line.pt1[0]/w2, new_line.pt1[1]/w2);
+                console.log(new_line.p1.x/w1);
+            }
         }
     }
 
