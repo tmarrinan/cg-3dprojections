@@ -158,6 +158,7 @@ function clipLineParallel(line) {
 
 // Clip line - should either return a new line (with two endpoints inside view volume) or null (if line is completely outside view volume)
 function clipLinePerspective(line, z_min) {
+    //Case 2 and default
     let result = null;
     let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z); 
     let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
@@ -165,6 +166,76 @@ function clipLinePerspective(line, z_min) {
     let out1 = outcodePerspective(p1, z_min);
     
     // TODO: implement clipping here!
+    let bitwiseOR = out0 | out1;
+    let bitWiseAND = out0 & out1;
+    while(true) {
+        if(bitwiseOR == 0) {
+            result = line;
+            break;
+        } else if (bitWiseAND != 0) {
+            break;
+        } else { // We know at least one of the points are out of bounds
+    
+            //Determining which outcode we deal with first
+            let outcode = 0;
+            let pt = 0;
+            if(out1 > out0) {
+                outcode = out1;
+                pt = pt1;
+            } else {
+                outcode = out0;
+                pt = pt0;
+            }
+
+            let x, y, z = 0;
+            let t = 0;
+            let int_pt = {x: pt.x, y: pt.y, z: pt.z};
+            //Just to simplify expressions
+            let deltax = pt1.x - pt0.x;
+            let deltay = pt1.y - pt0.y;
+            let deltaz = pt1.z - pt0.z;
+            if(outcode == LEFT) {
+                int_pt.x = 0;
+                t = -pt0.x + pt0.z/(deltax - deltaz);
+                y = (1-t) * pt0.y + t * pt1.y;
+                z = (1-t) * pt0.z + t * pt1.z;
+                
+            } else if (outcode == RIGHT) {
+                int_pt.x = 800;
+                t = pt0.x + pt0.z/(-deltax - deltaz);
+                y = (1-t) * pt0.y + t * pt1.y;
+                z = (1-t) * pt0.z + t * pt1.z;
+
+            } else if (outcode == BOTTOM) {
+                int_pt.y = 0;
+                t = -pt0.y + pt0.z/(deltay - deltaz);
+                x = (1-t) * pt0.x + t * pt1.x;
+                z = (1-t) * pt0.z + t * pt1.z;
+
+            } else if (outcode == TOP) {
+                int_pt.y = 600;
+                t = pt0.y + pt0.z/(-deltay - deltaz);
+                x = (1-t) * pt0.x + t * pt1.x;
+                z = (1-t) * pt0.z + t * pt1.z;
+
+            } else if (outcode == NEAR) {
+                //Not sure about this point
+                int_pt.z = z_min;
+                t = pt0.z - zmin/(-deltaz);
+                x = (1-t) * pt0.x + t * pt1.x;
+                y = (1-t) * pt0.y + t * pt1.y;
+
+            } else if (outcode == FAR) {
+                //Not sure about this point
+                int_pt.z = -1;
+                t = -pt0.z -1/(deltaz);
+                x = (1-t) * pt0.x + t * pt1.x;
+                y = (1-t) * pt0.y + t * pt1.y;
+
+            }
+            int_pt = {x: x, y: y, z: z};
+        }
+    }
     
     return result;
 }
