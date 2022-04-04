@@ -90,9 +90,36 @@ function drawScene() {
     // TODO: implement drawing here!
     // For each model, for each edge
     //  * transform to canonical view volume
+    let prp = scene.view.prp;
+    let srp = scene.view.srp;
+    let vup = scene.view.vup;
+    let clip = scene.view.clip;
+    
+    let matrix = mat4x4Perspective(prp, srp, vup, clip);
+    let mper = mat4x4MPer
     //  * clip in 3D
     //  * project to 2D
+    let proj = Matrix.multiply(matrix, mper);
     //  * draw line
+    let new_verts = [];
+    for(let i = 0; i < scene.models.length; i++) { //Looping through all models
+        let model = scene.models[i];
+        for(let j = 0; j < model.vertices.length; j++) { //Looping through all vertices
+            new_verts.push(Matrix.multiply(proj, model.vertices[j]));
+        }
+        for(let k = 0; k < models.edges.length; k++) { //Looping through edges
+            for(let l = 0; l < models.edges[k].length - 1; l++) { //Looping through each connecting edge
+                let index = models.edges[k][l];
+                let point = new_verts[index];
+                let point2 = new_verts[index + 1];
+                drawLine(point.x, point.y, point2.x, point2.y);
+            }
+        }
+    }
+
+
+
+
 }
 
 // Get outcode for vertex (parallel view volume)
@@ -168,9 +195,10 @@ function clipLinePerspective(line, z_min) {
     // TODO: implement clipping here!
     let bitwiseOR = out0 | out1;
     let bitWiseAND = out0 & out1;
+    let int_pt = {x: pt0.x, y: pt0.y, z: pt0.z};
     while(true) {
         if(bitwiseOR == 0) {
-            result = line;
+            result.push(p1);
             break;
         } else if (bitWiseAND != 0) {
             break;
@@ -178,62 +206,46 @@ function clipLinePerspective(line, z_min) {
     
             //Determining which outcode we deal with first
             let outcode = 0;
-            let pt = 0;
             if(out1 > out0) {
                 outcode = out1;
-                pt = pt1;
             } else {
                 outcode = out0;
-                pt = pt0;
             }
 
             let x, y, z = 0;
             let t = 0;
-            let int_pt = {x: pt.x, y: pt.y, z: pt.z};
             //Just to simplify expressions
             let deltax = pt1.x - pt0.x;
             let deltay = pt1.y - pt0.y;
             let deltaz = pt1.z - pt0.z;
-            if(outcode == LEFT) {
-                int_pt.x = 0;
+            if(outcode & LEFT > 0) {
                 t = -pt0.x + pt0.z/(deltax - deltaz);
+                x = (1-t) * pt0.x + t * pt1.x;
+                
+            } else if (outcode & RIGHT > 0) {
+                t = pt0.x + pt0.z/(-deltax - deltaz);
+                x = (1-t) * pt0.x + t * pt1.x;
+
+            } else if (outcode & BOTTOM > 0) {
+                t = -pt0.y + pt0.z/(deltay - deltaz);
                 y = (1-t) * pt0.y + t * pt1.y;
+
+            } else if (outcode & TOP > 0) {
+                t = pt0.y + pt0.z/(-deltay - deltaz);
+                y = (1-t) * pt0.y + t * pt1.y;
+
+            } else if (outcode & NEAR > 0) {
+                t = pt0.z - zmin/(-deltaz);
+                z = (1-t) * pt0.z + t * pt1.z;
+
+            } else if (outcode & FAR > 0) {
+                t = -pt0.z -1/(deltaz);
                 z = (1-t) * pt0.z + t * pt1.z;
                 
-            } else if (outcode == RIGHT) {
-                int_pt.x = 800;
-                t = pt0.x + pt0.z/(-deltax - deltaz);
-                y = (1-t) * pt0.y + t * pt1.y;
-                z = (1-t) * pt0.z + t * pt1.z;
-
-            } else if (outcode == BOTTOM) {
-                int_pt.y = 0;
-                t = -pt0.y + pt0.z/(deltay - deltaz);
-                x = (1-t) * pt0.x + t * pt1.x;
-                z = (1-t) * pt0.z + t * pt1.z;
-
-            } else if (outcode == TOP) {
-                int_pt.y = 600;
-                t = pt0.y + pt0.z/(-deltay - deltaz);
-                x = (1-t) * pt0.x + t * pt1.x;
-                z = (1-t) * pt0.z + t * pt1.z;
-
-            } else if (outcode == NEAR) {
-                //Not sure about this point
-                int_pt.z = z_min;
-                t = pt0.z - zmin/(-deltaz);
-                x = (1-t) * pt0.x + t * pt1.x;
-                y = (1-t) * pt0.y + t * pt1.y;
-
-            } else if (outcode == FAR) {
-                //Not sure about this point
-                int_pt.z = -1;
-                t = -pt0.z -1/(deltaz);
-                x = (1-t) * pt0.x + t * pt1.x;
-                y = (1-t) * pt0.y + t * pt1.y;
-
             }
+            
             int_pt = {x: x, y: y, z: z};
+            result.push(int_pt);
         }
     }
     
