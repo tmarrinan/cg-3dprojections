@@ -66,21 +66,6 @@ function init() {
     start_time = performance.now(); // current timestamp in milliseconds
     window.requestAnimationFrame(animate);
 
-    let pt0 = Vector4(20, 0, -30, 1);
-    let pt1 = Vector4(20, 0,-60, 1);
-    pt0.x = 0;
-    pt0.y = 0;
-    pt0.z = 0;
-    pt0.w = 1;
-
-    pt1.x = 20;
-    pt1.y = 0;
-    pt1.z = 0;
-    pt1.w = 1;
-    let line = {pt0, pt1};
-    console.log(line);
-    line = clipLinePerspective(line, -1*scene.view.clip[4] / scene.view.clip[5]);
-    console.log(line);
 }
 
 // Animation loop - repeatedly calls rendering code
@@ -101,24 +86,22 @@ function animate(timestamp) {
 
 // Main drawing code - use information contained in variable `scene`
 function drawScene() {
-    // TODO: implement drawing here!
     // For each model, for each edge
     let nPer = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
-    let mPer = mat4x4MPer();
-    // equivalent to mPer * nPer
-    let matrix = mPer.mult(nPer);
     let vertices = []; // array of all vertices that is multiplied by nPer and mPer
     
     // For loop iterate and access all the given vertices
-    // Use the given vertices and multiply it by matrix(mPer * nPer)
+    // Use the given vertices and multiply it by matrix(mPer)
     for (let i = 0; i < scene.models.length; i++){
         for (let j = 0; j < scene.models[i].vertices.length; j++) {
-            vertices[j] = matrix.mult(scene.models[i].vertices[j]);
+            vertices[j] = nPer.mult(scene.models[i].vertices[j]);
            // vertices[j] = scene.models[i].vertices[j].mult(matrix);
          //  console.log(vertices[j]);
         }
     }
 
+    // Go through all possible edges and take each vertices of the given edges
+    // to clip and draw them onto the scene.
     for (let i = 0; i < scene.models.length; i++){
         for (let j = 0; j < scene.models[i].edges.length; j++) {
             for (let k = 0; k < scene.models[i].edges[j].length-1; k++) {
@@ -127,6 +110,7 @@ function drawScene() {
                 let pt1 = vertices[scene.models[i].edges[j][k + 1]];
                 //create line
                 let line = {pt0, pt1};
+                // Set points (x,y,z,w) values
                 line.pt0.x = pt0.data[0];
                 line.pt0.y = pt0.data[1];
                 line.pt0.z = pt0.data[2];
@@ -136,31 +120,32 @@ function drawScene() {
                 line.pt1.y = pt0.data[1];
                 line.pt1.z = pt0.data[2];
                 line.pt1.w = pt0.data[3];
-                //clip
 
-           //     line = clipLinePerspective(line, (-1*scene.view.clip[4]) / scene.view.clip[5]);
+                // Clip the line (points)
+                line = clipLinePerspective(line, (-1*scene.view.clip[4]) / scene.view.clip[5]);
 
-                //drawLine(clipped.p1, clipped.p2)
-                //console.log(new_line);
-            //    let w1 = new_line.pt0[2];
-            //    let w2 = new_line.pt1[2];
-            //    drawLine(new_line.pt0[0]/w1, new_line.pt0[1]/w1, new_line.pt1[0]/w2, new_line.pt1[1]/w2);
-             //   console.log(new_line.p1.x/w1);
+                // Set points to be a vector that contain the newly clipped values
+                pt0 = Vector4(line.pt0.x, line.pt0.y, line.pt0.z, line.pt0.w);
+                pt1 = Vector4(line.pt1.x, line.pt1.y, line.pt1.z, line.pt1.w);
+
+                // Multiply the points by mPer (view scene)
+                let mPer = mat4x4MPer();
+                pt0 = mPer.mult(pt0);
+                pt1 = mPer.mult(pt1);
+
+                // Define points values to draw
+                // pt0.x = pt0.x / pt0.w
+                // pt0.y = pt0.y / pt0.w
+                pt0.x = pt0.data[0] / pt0.data[3];
+                pt0.y = pt0.data[1] / pt0.data[3];
+                pt1.x = pt1.data[0] / pt1.data[3];
+                pt1.y = pt1.data[1] / pt1.data[3];
+
+                // Draw the line
+                drawLine(pt0.x, pt0.y, pt1.x, pt1.y);
             }
         }
     }
-
-    /* How to create the line
-    let pt0 = Vector3(2,2,2);
-    let pt1 = Vector3(-5,10,20);
-    let line = {pt0, pt1}; 
-    clip(line, z_min)
-    */
-
-    //  * transform to canonical view volume    nPer
-    //  * clip in 3D                            clip
-    //  * project to 2D                        
-    //  * draw line                             drawLine()
 
 }
 
@@ -233,11 +218,6 @@ function clipLinePerspective(line, z_min) {
     let out0 = outcodePerspective(p0, z_min);
     let out1 = outcodePerspective(p1, z_min);
 
-    console.log(p0);
-    console.log(p1);
-    console.log(out0);
-    console.log(out1);
-    console.log(out0 | out1);
     // Keep looping until case is either accept or reject
     while(true) {
         // Case 1: Trivial Accept. Return the line as it is
