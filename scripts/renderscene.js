@@ -96,26 +96,29 @@ function drawScene() {
     let clip = scene.view.clip;
     
     let matrix = mat4x4Perspective(prp, srp, vup, clip);
-    let mper = mat4x4MPer
+    let mper = mat4x4MPer();
     //  * clip in 3D
     //  * project to 2D
-    let proj = Matrix.multiply(matrix, mper);
+    
+    let proj = Matrix.multiply([matrix, mper]);
     //  * draw line
     let new_verts = [];
+    
     for(let i = 0; i < scene.models.length; i++) { //Looping through all models
         let model = scene.models[i];
         for(let j = 0; j < model.vertices.length; j++) { //Looping through all vertices
-            new_verts.push(Matrix.multiply(proj, model.vertices[j]));
+            new_verts.push(Matrix.multiply([proj, model.vertices[j]]));
         }
-        for(let k = 0; k < models.edges.length; k++) { //Looping through edges
-            for(let l = 0; l < models.edges[k].length - 1; l++) { //Looping through each connecting edge
-                let index = models.edges[k][l];
-                let point = new_verts[index];
-                let point2 = new_verts[index + 1];
-                drawLine(point.x, point.y, point2.x, point2.y);
+        for(let k = 0; k < model.edges.length; k++) { //Looping through edges
+            for(let l = 0; l < model.edges[k].length - 1; l++) { //Looping through each connecting edge
+                //let index = model.edges[k][l];
+                //let point = new_verts[index];
+                //let point2 = new_verts[index + 1];
+                //drawLine(point.x, point.y, point2.x, point2.y);
             }
         }
     }
+    
 
 
 
