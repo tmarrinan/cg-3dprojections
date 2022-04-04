@@ -39,10 +39,11 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     let sy = 2*clip[4]/((clip[3]-clip[2])*clip[5]);;
     let sz = 1/clip[5];
     let scale = new Matrix(4, 4);
-    mat4x4Scale(scale, sx, sy, sz);
-        
-    let transform = Matrix.multiply([prp, translate, rotate, shear, scale]);
+    mat4x4Scale(scale, sx, sy, sz); 
     
+    let new_prp = Vector4(prp.x, prp.y, prp.z, 1);
+    
+    let transform = Matrix.multiply([new_prp, translate, rotate, shear, scale]);
     return transform;
 }
 
@@ -68,18 +69,18 @@ function mat4x4MPer() {
 }
 
 function rotateXYZ(mat4x4, prp, srp, vup) {
-    let n = [];
-    let v = [];
-    let u = [];
-    for(let i = 0; i < 3; i++) {
-        n[i] = Vector.normalize(prp[i] - srp[i]);
-        v[i] = Vector.normalize(vup[i] * n[i]);
-        u[i] = v[i] * n[i];
-    }
-    mat4x4.values=[ [u[0], u[1], u[2], 0],
-                    [v[0], v[1], v[2], 0],
-                    [n[0], n[1], n[2], 0],
-                    [ 0,    0,    0,   0]];
+    //let n = [];
+    //let v = [];
+    //let u = [];
+    let n = prp.subtract(srp);
+    n.normalize();
+    let v = vup.cross(n);
+    v.normalize();
+    let u = v.cross(n);
+    mat4x4.values=[ [u.x, u.y, u.z, 0],
+                    [v.x, v.y, v.z, 0],
+                    [n.x, n.y, n.z, 0],
+                    [ 0,   0,   0,  0]];
 }
 
 
