@@ -86,6 +86,25 @@ function animate(timestamp) {
 // Main drawing code - use information contained in variable `scene`
 function drawScene() {
     console.log(scene);
+    console.log("drawScene is called");
+
+
+    let prpValues = [0, 10, -5];
+    let prp = new Vector(3);
+    prp.values = prpValues;
+
+    let srpValues = [20, 15, -40];
+    let srp = new Vector(3);
+    srp.values = srpValues;
+
+    let vupValues = [1, 1, 0];
+    let vup = new Vector(3);
+    vup.values = vupValues;
+
+    let clip= [-12, 6, -12, 6, 10, 100];
+    let matrix = mat4x4Perspective(prp, srp, vup, clip);
+
+    console.log(matrix);
     
     // TODO: implement drawing here!
     // For each model, for each edge
