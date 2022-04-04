@@ -41,9 +41,7 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     let scale = new Matrix(4, 4);
     mat4x4Scale(scale, sx, sy, sz); 
     
-    let new_prp = Vector4(prp.x, prp.y, prp.z, 1);
-    
-    let transform = Matrix.multiply([new_prp, translate, rotate, shear, scale]);
+    let transform = Matrix.multiply([scale, shear, rotate, translate]);
     return transform;
 }
 
