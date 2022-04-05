@@ -87,8 +87,6 @@ function animate(timestamp) {
 function drawScene() {
     console.log(scene);
     
-    // TODO: implement drawing here!
-    // For each model, for each edge
     //  * transform to canonical view volume
     let prp = scene.view.prp;
     let srp = scene.view.srp;
@@ -98,31 +96,26 @@ function drawScene() {
     let matrix = mat4x4Perspective(prp, srp, vup, clip);
     let mper = mat4x4MPer();
     //  * clip in 3D
+    let zmin = -clip[4]/clip[5];
+    //clipLinePerspective(line, zmin);
     //  * project to 2D
-    
     let proj = Matrix.multiply([matrix, mper]);
     //  * draw line
     let new_verts = [];
-    
     for(let i = 0; i < scene.models.length; i++) { //Looping through all models
         let model = scene.models[i];
         for(let j = 0; j < model.vertices.length; j++) { //Looping through all vertices
             new_verts.push(Matrix.multiply([proj, model.vertices[j]]));
         }
         for(let k = 0; k < model.edges.length; k++) { //Looping through edges
-            for(let l = 0; l < model.edges[k].length - 1; l++) { //Looping through each connecting edge
-                //let index = model.edges[k][l];
-                //let point = new_verts[index];
-                //let point2 = new_verts[index + 1];
+            for(let l = 0; l < model.edges[k].length; l++) { //Looping through each connecting edge
+                let index = model.edges[k][l];
+                let point = new_verts[index];
+                //let point2 = new_verts[0];
                 //drawLine(point.x, point.y, point2.x, point2.y);
             }
         }
     }
-    
-
-
-
-
 }
 
 // Get outcode for vertex (parallel view volume)
@@ -197,13 +190,13 @@ function clipLinePerspective(line, z_min) {
     
     // TODO: implement clipping here!
     let bitwiseOR = out0 | out1;
-    let bitWiseAND = out0 & out1;
+    let bitwiseAND = out0 & out1;
     let int_pt = {x: pt0.x, y: pt0.y, z: pt0.z};
     while(true) {
         if(bitwiseOR == 0) {
             result.push(p1);
             break;
-        } else if (bitWiseAND != 0) {
+        } else if (bitwiseAND != 0) {
             break;
         } else { // We know at least one of the points are out of bounds
     

@@ -67,9 +67,6 @@ function mat4x4MPer() {
 }
 
 function rotateXYZ(mat4x4, prp, srp, vup) {
-    //let n = [];
-    //let v = [];
-    //let u = [];
     let n = prp.subtract(srp);
     n.normalize();
     let v = vup.cross(n);
