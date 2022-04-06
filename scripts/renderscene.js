@@ -83,7 +83,6 @@ function animate(timestamp) {
     // window.requestAnimationFrame(animate);
 }
 
-// Main drawing code - use information contained in variable `scene`
 function drawScene() {
     console.log(scene);
     
@@ -99,22 +98,34 @@ function drawScene() {
     let zmin = -clip[4]/clip[5];
     //clipLinePerspective(line, zmin);
     //  * project to 2D
-    let proj = Matrix.multiply([matrix, mper]);
+    let proj = Matrix.multiply([mper, matrix]);
     //  * draw line
     let new_verts = [];
     for(let i = 0; i < scene.models.length; i++) { //Looping through all models
         let model = scene.models[i];
+        /*
+        if(model.type == 'generic') {
+
+        } else {
+            //other shapes that require center
+        }*/
+        
         for(let j = 0; j < model.vertices.length; j++) { //Looping through all vertices
             new_verts.push(Matrix.multiply([proj, model.vertices[j]]));
         }
         for(let k = 0; k < model.edges.length; k++) { //Looping through edges
-            for(let l = 0; l < model.edges[k].length; l++) { //Looping through each connecting edge
+            for(let l = 0; l < model.edges[k].length - 1; l++) { //Looping through each connecting edge
                 let index = model.edges[k][l];
-                let point = new_verts[index];
-                //let point2 = new_verts[0];
-                //drawLine(point.x, point.y, point2.x, point2.y);
+                let index2 = model.edges[k][l+1];
+
+                let point1 = new_verts[index];
+                let point2 = new_verts[index2];
+                
+                drawLine(point1.x, point1.y, point2.x, point2.y);
             }
+        
         }
+        
     }
 }
 
@@ -191,10 +202,8 @@ function clipLinePerspective(line, z_min) {
     // TODO: implement clipping here!
     let bitwiseOR = out0 | out1;
     let bitwiseAND = out0 & out1;
-    let int_pt = {x: pt0.x, y: pt0.y, z: pt0.z};
     while(true) {
         if(bitwiseOR == 0) {
-            result.push(p1);
             break;
         } else if (bitwiseAND != 0) {
             break;
@@ -202,10 +211,13 @@ function clipLinePerspective(line, z_min) {
     
             //Determining which outcode we deal with first
             let outcode = 0;
+            let holderpt = 0;
             if(out1 > out0) {
                 outcode = out1;
+                holderpt = pt1;
             } else {
                 outcode = out0;
+                holderpt = pt0;
             }
 
             let x, y, z = 0;
@@ -214,34 +226,53 @@ function clipLinePerspective(line, z_min) {
             let deltax = pt1.x - pt0.x;
             let deltay = pt1.y - pt0.y;
             let deltaz = pt1.z - pt0.z;
-            if(outcode & LEFT > 0) {
+            if(outcode & LEFT) {
                 t = -pt0.x + pt0.z/(deltax - deltaz);
                 x = (1-t) * pt0.x + t * pt1.x;
+                y = holderpt.y;
+                z = holderpt.z;
                 
-            } else if (outcode & RIGHT > 0) {
+            } else if (outcode & RIGHT) {
                 t = pt0.x + pt0.z/(-deltax - deltaz);
                 x = (1-t) * pt0.x + t * pt1.x;
+                y = holderpt.y;
+                z = holderpt.z;
 
-            } else if (outcode & BOTTOM > 0) {
+            } else if (outcode & BOTTOM) {
                 t = -pt0.y + pt0.z/(deltay - deltaz);
                 y = (1-t) * pt0.y + t * pt1.y;
+                x = holderpt.x;
+                z = holderpt.z;
 
-            } else if (outcode & TOP > 0) {
+            } else if (outcode & TOP) {
                 t = pt0.y + pt0.z/(-deltay - deltaz);
                 y = (1-t) * pt0.y + t * pt1.y;
+                x = holderpt.x;
+                z = holderpt.z;
 
-            } else if (outcode & NEAR > 0) {
+            } else if (outcode & NEAR) {
                 t = pt0.z - zmin/(-deltaz);
                 z = (1-t) * pt0.z + t * pt1.z;
+                y = holderpt.y;
+                x = holderpt.x;
 
-            } else if (outcode & FAR > 0) {
+            } else if (outcode & FAR) {
                 t = -pt0.z -1/(deltaz);
                 z = (1-t) * pt0.z + t * pt1.z;
+                y = holderpt.y;
+                x = holderpt.x;
                 
             }
             
-            int_pt = {x: x, y: y, z: z};
-            result.push(int_pt);
+            if(outcode == out1) {
+                pt1.x = x;
+                pt1.y = y;
+                pt1.z = z;
+            } else if (outcode == out0) {
+                pt0.x = x;
+                pt0.y = y;
+                pt0.z = z;
+            } 
         }
     }
     
@@ -253,21 +284,39 @@ function onKeyDown(event) {
     switch (event.keyCode) {
         case 37: // LEFT Arrow
             console.log("left");
+            
             break;
         case 39: // RIGHT Arrow
             console.log("right");
+            
             break;
         case 65: // A key
             console.log("A");
+            /*scene.view.prp.x = scene.view.prp.x - 10;
+            scene.view.srp.x = scene.view.srp.x - 10;
+            console.log(scene.view.prp.x);
+            */
             break;
         case 68: // D key
             console.log("D");
+            /*scene.view.prp.x = scene.view.prp.x + 10;
+            scene.view.srp.x = scene.view.srp.x + 10;
+            console.log(scene.view.prp.x);
+            */
             break;
         case 83: // S key
             console.log("S");
+            /*scene.view.prp.x = scene.view.prp.y - 10;
+            scene.view.srp.x = scene.view.srp.y - 10;
+            console.log(scene.view.prp.x);
+            */
             break;
         case 87: // W key
             console.log("W");
+            /*scene.view.prp.x = scene.view.prp.y + 10;
+            scene.view.srp.x = scene.view.srp.y + 10;
+            console.log(scene.view.prp.x);
+            */
             break;
     }
 }
