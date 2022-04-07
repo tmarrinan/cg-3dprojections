@@ -85,7 +85,8 @@ function animate(timestamp) {
 
 function drawScene() {
     console.log(scene);
-    
+    let width = view.width;
+    let height = view.height;
     //  * transform to canonical view volume
     let prp = scene.view.prp;
     let srp = scene.view.srp;
@@ -96,9 +97,9 @@ function drawScene() {
     let mper = mat4x4MPer();
     //  * clip in 3D
     let zmin = -clip[4]/clip[5];
-    //clipLinePerspective(line, zmin);
     //  * project to 2D
     let proj = Matrix.multiply([mper, matrix]);
+    
     //  * draw line
     let new_verts = [];
     for(let i = 0; i < scene.models.length; i++) { //Looping through all models
@@ -109,9 +110,14 @@ function drawScene() {
         } else {
             //other shapes that require center
         }*/
+
         
         for(let j = 0; j < model.vertices.length; j++) { //Looping through all vertices
             new_verts.push(Matrix.multiply([proj, model.vertices[j]]));
+            new_verts[j].x = new_verts[j].x/ new_verts[j].w;
+            new_verts[j].y = new_verts[j].y/ new_verts[j].w;
+            new_verts[j].z = new_verts[j].z/ new_verts[j].w;
+            new_verts[j].w = 1; 
         }
         for(let k = 0; k < model.edges.length; k++) { //Looping through edges
             for(let l = 0; l < model.edges[k].length - 1; l++) { //Looping through each connecting edge
@@ -121,13 +127,15 @@ function drawScene() {
                 let point1 = new_verts[index];
                 let point2 = new_verts[index2];
                 
-                drawLine(point1.x, point1.y, point2.x, point2.y);
+                drawLine(point1.x*width + 300, point1.y*height+ 300, point2.x*width + 300, point2.y*height + 300);
             }
         
         }
         
     }
 }
+
+
 
 // Get outcode for vertex (parallel view volume)
 function outcodeParallel(vertex) {
@@ -292,31 +300,31 @@ function onKeyDown(event) {
             break;
         case 65: // A key
             console.log("A");
-            /*scene.view.prp.x = scene.view.prp.x - 10;
+            scene.view.prp.x = scene.view.prp.x - 10;
             scene.view.srp.x = scene.view.srp.x - 10;
             console.log(scene.view.prp.x);
-            */
+            
             break;
         case 68: // D key
             console.log("D");
-            /*scene.view.prp.x = scene.view.prp.x + 10;
+            scene.view.prp.x = scene.view.prp.x + 10;
             scene.view.srp.x = scene.view.srp.x + 10;
             console.log(scene.view.prp.x);
-            */
+            
             break;
         case 83: // S key
             console.log("S");
-            /*scene.view.prp.x = scene.view.prp.y - 10;
-            scene.view.srp.x = scene.view.srp.y - 10;
-            console.log(scene.view.prp.x);
-            */
+            scene.view.prp.y = scene.view.prp.y - 10;
+            scene.view.srp.y = scene.view.srp.y - 10;
+            console.log(scene.view.prp.y);
+            
             break;
         case 87: // W key
             console.log("W");
-            /*scene.view.prp.x = scene.view.prp.y + 10;
-            scene.view.srp.x = scene.view.srp.y + 10;
-            console.log(scene.view.prp.x);
-            */
+            scene.view.prp.y = scene.view.prp.y + 10;
+            scene.view.srp.y = scene.view.srp.y + 10;
+            console.log(scene.view.prp.y);
+            
             break;
     }
 }
