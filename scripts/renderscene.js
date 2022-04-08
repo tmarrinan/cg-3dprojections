@@ -85,8 +85,6 @@ function animate(timestamp) {
 
 function drawScene() {
     console.log(scene);
-    let width = view.width;
-    let height = view.height;
     //  * transform to canonical view volume
     let prp = scene.view.prp;
     let srp = scene.view.srp;
@@ -95,23 +93,19 @@ function drawScene() {
     
     let matrix = mat4x4Perspective(prp, srp, vup, clip);
     let mper = mat4x4MPer();
+    let v = vMat(view.width, view.height);
     //  * clip in 3D
     let zmin = -clip[4]/clip[5];
     //  * project to 2D
-    let proj = Matrix.multiply([mper, matrix]);
+    //matrix, clip, mper, v - flip in matrix mult
+    let proj = Matrix.multiply([v, mper, matrix]);
     
     //  * draw line
     let new_verts = [];
     for(let i = 0; i < scene.models.length; i++) { //Looping through all models
         let model = scene.models[i];
-        /*
-        if(model.type == 'generic') {
-
-        } else {
-            //other shapes that require center
-        }*/
-
         
+        //Just multiply vertices by matrix then clip
         for(let j = 0; j < model.vertices.length; j++) { //Looping through all vertices
             new_verts.push(Matrix.multiply([proj, model.vertices[j]]));
             new_verts[j].x = new_verts[j].x/ new_verts[j].w;
@@ -127,12 +121,32 @@ function drawScene() {
                 let point1 = new_verts[index];
                 let point2 = new_verts[index2];
                 
-                drawLine(point1.x*width + 300, point1.y*height+ 300, point2.x*width + 300, point2.y*height + 300);
+                drawLine(point1.x, point1.y, point2.x, point2.y);
             }
         
         }
+        //let clipvert = [];
+        //let length = new_verts.length;
+        /*
+        for(let k = 0; k < length - 1; k++) {
+            let line = {pt0: new_verts[k], pt1: new_verts[k+1]};
+            //console.log(line);
+            let clipped = clipLinePerspective(line, zmin);
+            clipvert.push(clipped);
+            console.log(clipvert[k])
+        }
+        */
         
     }
+}
+
+function vMat(w, h) {
+    let vMat = new Matrix(4,4);
+    vMat.values =  [[w/2, 0,  0,  w/2],
+                    [0, h/2,  0,  h/2],
+                    [0,  0,   1,   0 ],
+                    [0,  0,   0,   1 ]];
+    return vMat;
 }
 
 

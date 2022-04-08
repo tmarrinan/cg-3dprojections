@@ -66,6 +66,7 @@ function mat4x4MPer() {
     return mper;
 }
 
+
 function rotateXYZ(mat4x4, prp, srp, vup) {
     let n = prp.subtract(srp);
     n.normalize();
