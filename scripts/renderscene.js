@@ -92,51 +92,56 @@ function drawScene() {
     let clip = scene.view.clip;
     
     let matrix = mat4x4Perspective(prp, srp, vup, clip);
-    let mper = mat4x4MPer();
+    let proj = mat4x4MPer();
     let v = vMat(view.width, view.height);
     //  * clip in 3D
     let zmin = -clip[4]/clip[5];
     //  * project to 2D
     //matrix, clip, mper, v - flip in matrix mult
-    let proj = Matrix.multiply([v, mper, matrix]);
+    //let proj = Matrix.multiply([v, mper, matrix]);
     
     //  * draw line
     let new_verts = [];
     for(let i = 0; i < scene.models.length; i++) { //Looping through all models
         let model = scene.models[i];
-        
+        let new_vertex;
         //Just multiply vertices by matrix then clip
         for(let j = 0; j < model.vertices.length; j++) { //Looping through all vertices
-            new_verts.push(Matrix.multiply([proj, model.vertices[j]]));
-            new_verts[j].x = new_verts[j].x/ new_verts[j].w;
-            new_verts[j].y = new_verts[j].y/ new_verts[j].w;
-            new_verts[j].z = new_verts[j].z/ new_verts[j].w;
-            new_verts[j].w = 1; 
+            new_vertex = Matrix.multiply([matrix, model.matrix, model.vertices[j]])
+            new_vertex.x = new_vertex.x/ new_vertex.w;
+            new_vertex.y = new_vertex.y/ new_vertex.w;
+            new_vertex.z = new_vertex.z/ new_vertex.w;
+            new_vertex.w = 1; 
+            console.log("original vertice being transformed: ", new_vertex)
+            new_verts.push(new_vertex)
         }
         for(let k = 0; k < model.edges.length; k++) { //Looping through edges
             for(let l = 0; l < model.edges[k].length - 1; l++) { //Looping through each connecting edge
                 let index = model.edges[k][l];
                 let index2 = model.edges[k][l+1];
 
-                let point1 = new_verts[index];
-                let point2 = new_verts[index2];
+                let point0 = new_verts[index];
+                let point1 = new_verts[index2];
                 
-                drawLine(point1.x, point1.y, point2.x, point2.y);
+                let newline = {
+                    pt0: Vector4(point0.x, point0.y, point0.z, 1),
+                    pt1: Vector4(point1.x, point1.y, point1.z, 1)
+                }
+
+                newline = clipLinePerspective(newline, zmin);
+                console.log("Line after clipping: ", newline);
+                let new_vert0 = Matrix.multiply([v, proj, newline.pt0]);
+                new_vert0.x = new_vert0.x/new_vert0.w;
+                new_vert0.y = new_vert0.y/new_vert0.w;
+                let new_vert1 = Matrix.multiply([v, proj, newline.pt1]);
+                new_vert1.x = new_vert1.x/new_vert1.w;
+                new_vert1.y = new_vert1.y/new_vert1.w;
+
+                drawLine(new_vert0.x, new_vert0.y, new_vert1.x, new_vert1.y);
+                
             }
         
         }
-        //let clipvert = [];
-        //let length = new_verts.length;
-        /*
-        for(let k = 0; k < length - 1; k++) {
-            let line = {pt0: new_verts[k], pt1: new_verts[k+1]};
-            //console.log(line);
-            let clipped = clipLinePerspective(line, zmin);
-            clipvert.push(clipped);
-            console.log(clipvert[k])
-        }
-        */
-        
     }
 }
 
@@ -215,7 +220,12 @@ function clipLineParallel(line) {
 // Clip line - should either return a new line (with two endpoints inside view volume) or null (if line is completely outside view volume)
 function clipLinePerspective(line, z_min) {
     //Case 2 and default
-    let result = null;
+
+    let result = {
+        pt0: Vector4(line.pt0.x, line.pt0.y, line.pt0.z, 1),
+        pt1: Vector4(line.pt1.x, line.pt1.y, line.pt1.z, 1)
+    };
+
     let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z); 
     let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
     let out0 = outcodePerspective(p0, z_min);
@@ -242,7 +252,6 @@ function clipLinePerspective(line, z_min) {
                 holderpt = pt0;
             }
 
-            let x, y, z = 0;
             let t = 0;
             //Just to simplify expressions
             let deltax = pt1.x - pt0.x;
@@ -250,50 +259,40 @@ function clipLinePerspective(line, z_min) {
             let deltaz = pt1.z - pt0.z;
             if(outcode & LEFT) {
                 t = -pt0.x + pt0.z/(deltax - deltaz);
-                x = (1-t) * pt0.x + t * pt1.x;
-                y = holderpt.y;
-                z = holderpt.z;
+                holderpt.x = ((1-t) * pt0.x) + (t * pt1.x);
                 
             } else if (outcode & RIGHT) {
                 t = pt0.x + pt0.z/(-deltax - deltaz);
-                x = (1-t) * pt0.x + t * pt1.x;
-                y = holderpt.y;
-                z = holderpt.z;
+                holderpt.x = ((1-t) * pt0.x) + (t * pt1.x);
 
             } else if (outcode & BOTTOM) {
                 t = -pt0.y + pt0.z/(deltay - deltaz);
-                y = (1-t) * pt0.y + t * pt1.y;
-                x = holderpt.x;
-                z = holderpt.z;
+                holderpt.y = ((1-t) * pt0.y) + (t * pt1.y);
 
             } else if (outcode & TOP) {
                 t = pt0.y + pt0.z/(-deltay - deltaz);
-                y = (1-t) * pt0.y + t * pt1.y;
-                x = holderpt.x;
-                z = holderpt.z;
+                holderpt.y = ((1-t) * pt0.y) + (t * pt1.y);
 
             } else if (outcode & NEAR) {
                 t = pt0.z - zmin/(-deltaz);
-                z = (1-t) * pt0.z + t * pt1.z;
-                y = holderpt.y;
-                x = holderpt.x;
+                holderpt.z = ((1-t) * pt0.z) + (t * pt1.z);
 
             } else if (outcode & FAR) {
                 t = -pt0.z -1/(deltaz);
-                z = (1-t) * pt0.z + t * pt1.z;
-                y = holderpt.y;
-                x = holderpt.x;
+                holderpt.z = ((1-t) * pt0.z) + (t * pt1.z);
                 
             }
             
             if(outcode == out1) {
-                pt1.x = x;
-                pt1.y = y;
-                pt1.z = z;
+                result.pt1.x = holderpt.x;
+                result.pt1.y = holderpt.y;
+                result.pt1.z = holderpt.z;
+
             } else if (outcode == out0) {
-                pt0.x = x;
-                pt0.y = y;
-                pt0.z = z;
+                result.pt0.x = holderpt.x;
+                result.pt0.y = holderpt.y;
+                result.pt0.z = holderpt.z;
+
             } 
         }
     }
