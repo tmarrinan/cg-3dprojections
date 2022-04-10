@@ -226,10 +226,10 @@ function clipLinePerspective(line, z_min) {
         pt1: Vector4(line.pt1.x, line.pt1.y, line.pt1.z, 1)
     };
 
-    let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z); 
-    let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
-    let out0 = outcodePerspective(p0, z_min);
-    let out1 = outcodePerspective(p1, z_min);
+    let pt0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z); 
+    let pt1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
+    let out0 = outcodePerspective(pt0, z_min);
+    let out1 = outcodePerspective(pt1, z_min);
     
     // TODO: implement clipping here!
     let bitwiseOR = out0 | out1;
@@ -274,7 +274,7 @@ function clipLinePerspective(line, z_min) {
                 holderpt.y = ((1-t) * pt0.y) + (t * pt1.y);
 
             } else if (outcode & NEAR) {
-                t = pt0.z - zmin/(-deltaz);
+                t = pt0.z - z_min/(-deltaz);
                 holderpt.z = ((1-t) * pt0.z) + (t * pt1.z);
 
             } else if (outcode & FAR) {
