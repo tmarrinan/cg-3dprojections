@@ -108,11 +108,6 @@ function drawScene() {
         //Just multiply vertices by matrix then clip
         for(let j = 0; j < model.vertices.length; j++) { //Looping through all vertices
             new_vertex = Matrix.multiply([matrix, model.matrix, model.vertices[j]])
-            new_vertex.x = new_vertex.x/ new_vertex.w;
-            new_vertex.y = new_vertex.y/ new_vertex.w;
-            new_vertex.z = new_vertex.z/ new_vertex.w;
-            new_vertex.w = 1; 
-            console.log("original vertice being transformed: ", new_vertex)
             new_verts.push(new_vertex)
         }
         for(let k = 0; k < model.edges.length; k++) { //Looping through edges
@@ -130,13 +125,18 @@ function drawScene() {
 
                 newline = clipLinePerspective(newline, zmin);
                 console.log("Line after clipping: ", newline);
+                if(newline == null) {
+                    continue;
+                }
                 let new_vert0 = Matrix.multiply([v, proj, newline.pt0]);
-                new_vert0.x = new_vert0.x/new_vert0.w;
-                new_vert0.y = new_vert0.y/new_vert0.w;
+                new_vert0.x = new_vert0.x/ new_vert0.w;
+                new_vert0.y = new_vert0.y/ new_vert0.w;
+            
+                
                 let new_vert1 = Matrix.multiply([v, proj, newline.pt1]);
-                new_vert1.x = new_vert1.x/new_vert1.w;
-                new_vert1.y = new_vert1.y/new_vert1.w;
-
+                new_vert1.x = new_vert1.x/ new_vert1.w;
+                new_vert1.y = new_vert1.y/ new_vert1.w;
+                
                 drawLine(new_vert0.x, new_vert0.y, new_vert1.x, new_vert1.y);
                 
             }
@@ -238,7 +238,7 @@ function clipLinePerspective(line, z_min) {
         if(bitwiseOR == 0) {
             break;
         } else if (bitwiseAND != 0) {
-            break;
+            return null;
         } else { // We know at least one of the points are out of bounds
     
             //Determining which outcode we deal with first
