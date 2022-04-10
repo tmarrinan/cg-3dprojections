@@ -26,7 +26,7 @@ function init() {
         view: {
             type: 'perspective',
             prp: Vector3(44, 20, -16),
-            srp: Vector3(20, 20, -40),
+            srp: Vector3(35, 20, -40),
             vup: Vector3(0, 1, 0),
             clip: [-19, 5, -10, 8, 12, 100]
         },
@@ -90,9 +90,16 @@ function drawScene() {
     let srp = scene.view.srp;
     let vup = scene.view.vup;
     let clip = scene.view.clip;
-    
-    let matrix = mat4x4Perspective(prp, srp, vup, clip);
-    let proj = mat4x4MPer();
+    let matrix;
+    let proj;
+    if(scene.view.type == "perspective") {
+        matrix = mat4x4Perspective(prp, srp, vup, clip);
+        proj = mat4x4MPer();
+    } else {
+        matrix = mat4x4Parallel(prp, srp, vup, clip);
+        proj = mat4x4MPar();
+    }
+
     let v = vMat(view.width, view.height);
     //  * clip in 3D
     let zmin = -clip[4]/clip[5];
@@ -230,11 +237,18 @@ function clipLinePerspective(line, z_min) {
     let pt1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
     let out0 = outcodePerspective(pt0, z_min);
     let out1 = outcodePerspective(pt1, z_min);
-    
-    // TODO: implement clipping here!
+
     let bitwiseOR = out0 | out1;
     let bitwiseAND = out0 & out1;
-    while(true) {
+    
+    //let i = 0;
+    // TODO: implement clipping here!
+    while(true) { 
+            out0 = outcodePerspective(result.pt0, z_min)
+            out1 = outcodePerspective(result.pt1, z_min)
+            bitwiseOR = out0 | out1;
+            bitwiseAND = out0 & out1;
+
         if(bitwiseOR == 0) {
             break;
         } else if (bitwiseAND != 0) {
@@ -242,15 +256,17 @@ function clipLinePerspective(line, z_min) {
         } else { // We know at least one of the points are out of bounds
     
             //Determining which outcode we deal with first
-            let outcode = 0;
-            let holderpt = 0;
-            if(out1 > out0) {
-                outcode = out1;
-                holderpt = pt1;
-            } else {
+            let outcode;
+            let holderpt;
+            if(out0 != 0) {
                 outcode = out0;
                 holderpt = pt0;
+            } else {
+                outcode = out1;
+                holderpt = pt1;
             }
+
+            
 
             let t = 0;
             //Just to simplify expressions
@@ -258,30 +274,34 @@ function clipLinePerspective(line, z_min) {
             let deltay = pt1.y - pt0.y;
             let deltaz = pt1.z - pt0.z;
             if(outcode & LEFT) {
-                t = -pt0.x + pt0.z/(deltax - deltaz);
-                holderpt.x = ((1-t) * pt0.x) + (t * pt1.x);
+                t = (-pt0.x + pt0.z)/(deltax - deltaz);
+                //holderpt.x = ((1-t) * pt0.x) + (t * pt1.x);
                 
             } else if (outcode & RIGHT) {
-                t = pt0.x + pt0.z/(-deltax - deltaz);
-                holderpt.x = ((1-t) * pt0.x) + (t * pt1.x);
+                t = (pt0.x + pt0.z)/(-deltax - deltaz);
+                //holderpt.x = ((1-t) * pt0.x) + (t * pt1.x);
 
             } else if (outcode & BOTTOM) {
-                t = -pt0.y + pt0.z/(deltay - deltaz);
-                holderpt.y = ((1-t) * pt0.y) + (t * pt1.y);
+                t = (-pt0.y + pt0.z)/(deltay - deltaz);
+                //holderpt.y = ((1-t) * pt0.y) + (t * pt1.y);
 
             } else if (outcode & TOP) {
-                t = pt0.y + pt0.z/(-deltay - deltaz);
-                holderpt.y = ((1-t) * pt0.y) + (t * pt1.y);
+                t = (pt0.y + pt0.z)/(-deltay - deltaz);
+                //holderpt.y = ((1-t) * pt0.y) + (t * pt1.y);
 
             } else if (outcode & NEAR) {
-                t = pt0.z - z_min/(-deltaz);
-                holderpt.z = ((1-t) * pt0.z) + (t * pt1.z);
+                t = (pt0.z - z_min)/(-deltaz);
+                //holderpt.z = ((1-t) * pt0.z) + (t * pt1.z);
 
             } else if (outcode & FAR) {
-                t = -pt0.z -1/(deltaz);
-                holderpt.z = ((1-t) * pt0.z) + (t * pt1.z);
+                t = (-pt0.z -1)/(deltaz);
+                //holderpt.z = ((1-t) * pt0.z) + (t * pt1.z);
                 
             }
+
+            holderpt.x = ((1-t) * pt0.x) + (t * pt1.x);
+            holderpt.y = ((1-t) * pt0.y) + (t * pt1.y);
+            holderpt.z = ((1-t) * pt0.z) + (t * pt1.z);
             
             if(outcode == out1) {
                 result.pt1.x = holderpt.x;
