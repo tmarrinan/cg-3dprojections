@@ -131,7 +131,7 @@ function drawScene() {
                 }
 
                 newline = clipLinePerspective(newline, zmin);
-                console.log("Line after clipping: ", newline);
+                
                 if(newline == null) {
                     continue;
                 }
