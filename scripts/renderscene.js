@@ -26,7 +26,7 @@ function init() {
         view: {
             type: 'perspective',
             prp: Vector3(44, 20, -16),
-            srp: Vector3(35, 20, -40),
+            srp: Vector3(20, 20, -40),
             vup: Vector3(0, 1, 0),
             clip: [-19, 5, -10, 8, 12, 100]
         },
@@ -130,7 +130,13 @@ function drawScene() {
                     pt1: Vector4(point1.x, point1.y, point1.z, 1)
                 }
 
-                newline = clipLinePerspective(newline, zmin);
+                if(scene.view.type == "perspective") {
+                    newline = clipLinePerspective(newline, zmin);
+                } else {
+                    newline = clipLineParallel(newline);
+                }
+
+                
                 
                 if(newline == null) {
                     continue;
@@ -213,13 +219,85 @@ function outcodePerspective(vertex, z_min) {
 
 // Clip line - should either return a new line (with two endpoints inside view volume) or null (if line is completely outside view volume)
 function clipLineParallel(line) {
-    let result = null;
-    let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z); 
-    let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
-    let out0 = outcodeParallel(p0);
-    let out1 = outcodeParallel(p1);
+    let result = {
+        pt0: Vector4(line.pt0.x, line.pt0.y, line.pt0.z, 1),
+        pt1: Vector4(line.pt1.x, line.pt1.y, line.pt1.z, 1)
+    };
+
+    let pt0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z); 
+    let pt1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
+    let out0 = outcodeParallel(result.pt0);
+    let out1 = outcodeParallel(result.pt1);
+    let bitwiseOR = out0 | out1;
+    let bitwiseAND = out0 & out1;
     
+    //let i = 0;
     // TODO: implement clipping here!
+    while(true) { 
+            out0 = outcodeParallel(result.pt0);
+            out1 = outcodeParallel(result.pt1);
+            bitwiseOR = out0 | out1;
+            bitwiseAND = out0 & out1;
+
+        if(bitwiseOR == 0) {
+            break;
+        } else if (bitwiseAND != 0) {
+            return null;
+        } else { // We know at least one of the points are out of bounds
+    
+            //Determining which outcode we deal with first
+            let outcode;
+            let holderpt;
+            if(out0 != 0) {
+                outcode = out0;
+                holderpt = pt0;
+            } else {
+                outcode = out1;
+                holderpt = pt1;
+            }
+
+            let t = 0;
+            //Just to simplify expressions
+            let deltax = pt1.x - pt0.x;
+            let deltay = pt1.y - pt0.y;
+            let deltaz = pt1.z - pt0.z;
+            if(outcode & LEFT) {
+                t = (-1 - pt0.x)/ deltax;
+                
+            } else if (outcode & RIGHT) {
+                t = (1 - pt0.x)/ deltax;
+
+            } else if (outcode & BOTTOM) {
+                t = (-1 - pt0.y)/ deltay;
+
+            } else if (outcode & TOP) {
+                t = (1 - pt0.y)/ deltay;
+
+            } else if (outcode & NEAR) {
+                t = (-1 - pt0.z)/ deltaz;
+
+            } else if (outcode & FAR) {
+                t = (-pt0.z)/(deltaz);
+                
+            }
+
+            holderpt.x = ((1-t) * pt0.x) + (t * pt1.x);
+            holderpt.y = ((1-t) * pt0.y) + (t * pt1.y);
+            holderpt.z = ((1-t) * pt0.z) + (t * pt1.z);
+            
+            if(outcode == out1) {
+                result.pt1.x = holderpt.x;
+                result.pt1.y = holderpt.y;
+                result.pt1.z = holderpt.z;
+
+            } else if (outcode == out0) {
+                result.pt0.x = holderpt.x;
+                result.pt0.y = holderpt.y;
+                result.pt0.z = holderpt.z;
+
+            } 
+        }
+    }
     
     return result;
 }
