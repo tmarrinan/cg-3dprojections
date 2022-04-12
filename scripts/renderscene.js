@@ -75,7 +75,7 @@ function init() {
                     depth: 8
                 },*/
                 {
-                    type:"cone",
+                    type:"cylinder",
                     center: [0,4,-6],
                     radius:4,
                     height:8,
@@ -276,6 +276,53 @@ function newModel() {
             scene.models[i] = model;
 
         } else if (ogmodel.type == 'cylinder') {
+
+            let model = {
+                type: 'generic',
+                vertices: [],
+                edges: [],
+                matrix: new Matrix(4, 4),
+                center: ogmodel.center
+            }
+        
+            let radius = ogmodel.radius;
+            let height = ogmodel.height;
+            let sides = ogmodel.sides;
+            // lower vertices of base
+            let mult = Math.PI * 2
+            for (let i = 0; i < sides; i += 1) {
+                let x = mult * (i / sides)
+                let new_vertex = new Vector4(Math.sin(x) * radius, -(height / 2), Math.cos(x) * radius, 1)
+                model.vertices.push(new_vertex)
+            }
+            // top vertices of cylinder
+            for (let i = 0; i < sides; i += 1) {
+                let x = mult * (i / sides)
+                let new_vertex = new Vector4(Math.sin(x) * radius, (height / 2), Math.cos(x) * radius,1)
+                model.vertices.push(new_vertex)
+            }
+
+            let translate = new Matrix(4, 4)
+            mat4x4Translate(translate, model.center[0], model.center[1], model.center[2]) //translating to the center point
+            for (let i = 0; i < model.vertices.length; i++) {
+                model.vertices[i] = new Vector(Matrix.multiply([translate, model.vertices[i]]))
+            }
+
+            let c_bottom = []
+            let c_top = []
+            for (let i = 0; i < sides; i++) {
+                c_bottom.push(i)
+                c_top.push(sides + i)
+                model.edges.push([i, sides + i])
+            }
+            //connect back to first point
+            c_bottom.push(0)
+            //connect back to original point of top
+            c_top.push(sides)
+            model.edges.push(c_bottom)
+            model.edges.push(c_top)
+
+            scene.models[i] = model;
 
         } else if (ogmodel.type == 'sphere') {
 
@@ -535,7 +582,7 @@ function onKeyDown(event) {
             translate = new Matrix(4, 4);
             mat4x4Translate(translate, scene.view.prp.x, scene.view.prp.y, scene.view.prp.z)
             rotate = new Matrix(4, 4);
-            mat4x4RotateY(rotate, Math.PI);
+            mat4x4RotateY(rotate, 1);
 
             srpMat = new Matrix(4, 1);
             srpMat.values = [   [scene.view.srp.x],
@@ -547,7 +594,6 @@ function onKeyDown(event) {
             matrix = Matrix.multiply([rotate, translate, srpMat])
             scene.view.srp = new Vector3(matrix.values[0][0], matrix.values[1][0], matrix.values[2][0])
 
-            
             break;
         case 39: // RIGHT Arrow
             console.log("right");
