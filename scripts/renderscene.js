@@ -23,7 +23,7 @@ function init() {
 
     // initial scene... feel free to change this
     scene = {
-        view: {
+        /*view: {
             type: 'perspective',
             prp: Vector3(44, 20, -16),
             srp: Vector3(20, 20, -40),
@@ -57,10 +57,35 @@ function init() {
                 matrix: new Matrix(4, 4)
             }
         ]
+        */
+        
+            view: {
+                type: "parallel",
+                prp: Vector3(0, 0, 10),
+                srp: Vector3(0, 0, 0),
+                vup: Vector3(0, 1, 0),
+                clip: [-4, 20, -1, 17, 5, 75]
+            },
+            models: [
+                /*{
+                    type: "cube",
+                    center: [4, 4, -10],
+                    width: 8,
+                    height: 8,
+                    depth: 8
+                },*/
+                {
+                    type:"cone",
+                    center: [0,4,-6],
+                    radius:4,
+                    height:8,
+                    sides:10
+                }
+            ]
+        
     };
 
     newModel();
-
     // event handler for pressing arrow keys
     document.addEventListener('keydown', onKeyDown, false);
     
@@ -83,7 +108,7 @@ function animate(timestamp) {
     drawScene();
     // step 4: request next animation frame (recursively calling same function)
     // (may want to leave commented out while debugging initially)
-    //window.requestAnimationFrame(animate);
+    window.requestAnimationFrame(animate);
 }
 
 function drawScene() {
@@ -151,7 +176,6 @@ function drawScene() {
                     let new_vert1 = Matrix.multiply([v, proj, newline.pt1]);
                     new_vert1.x = new_vert1.x/ new_vert1.w;
                     new_vert1.y = new_vert1.y/ new_vert1.w;
-                    
                     drawLine(new_vert0.x, new_vert0.y, new_vert1.x, new_vert1.y);
                     
                 }
@@ -166,15 +190,94 @@ function newModel() {
     console.log(scene);
 
     for(let i = 0; i < scene.models.length; i++) {
-        let model = scene.models[i];
+        let ogmodel = scene.models[i];
+        let model;
 
-        if(model.type == 'cube') {
+        if(ogmodel.type == 'cube') {
 
-        } else if (model.type == 'cone') {
+            model = {
+                type: "generic",
+                vertices: [],
+                edges: [],
+                matrix: new Matrix(4,4),
+                center: ogmodel.center,
 
-        } else if (model.type == 'cylinder') {
+            }
 
-        } else if (model.type == 'sphere') {
+            let width = ogmodel.width / 2
+            let height = ogmodel.height / 2
+            let depth = ogmodel.depth / 2
+
+            model.vertices.push(...[
+                Vector4(-width, height, -depth, 1),
+                Vector4(width, height, -depth, 1),
+                Vector4(width, -height, -depth, 1),
+                Vector4(-width, -height, -depth, 1),
+                Vector4(-width, height, depth, 1),
+                Vector4(width, height, depth, 1),
+                Vector4(width, -height, depth, 1),
+                Vector4(-width, -height, depth, 1),
+                
+            ])
+
+            let translate = new Matrix(4, 4)
+            mat4x4Translate(translate, model.center[0], model.center[1], model.center[2]) //translating to the center point
+            for (let i = 0; i < model.vertices.length; i++) {
+                model.vertices[i] = new Vector(Matrix.multiply([translate, model.vertices[i]]))
+                console.log(model.vertices[i])
+            }
+
+            model.edges.push(...[
+                [0, 1, 2, 3, 0],
+                [4, 5, 6, 7, 4],
+                [0, 4],
+                [1, 5],
+                [2, 6],
+                [3, 7]
+            ])
+
+            scene.models[i] = model;
+
+        } else if (ogmodel.type == 'cone') {
+
+            let model = {
+                type: 'generic',
+                vertices: [],
+                edges: [],
+                matrix: new Matrix(4, 4),
+                center: ogmodel.center
+            }
+        
+            let radius = ogmodel.radius;
+            let height = ogmodel.height;
+            let sides = ogmodel.sides;
+            // lower vertices of base
+            let mult = Math.PI * 2
+            for (let i = 0; i < sides; i += 1) {
+                let x = mult * (i / sides)
+                let new_vertex = new Vector4(Math.sin(x) * radius, -(height / 2), Math.cos(x) * radius, 1)
+                model.vertices.push(new_vertex)
+            }
+            //top vertex of cone
+            model.vertices.push(new Vector4(0, (height / 2), 0, 1))
+        
+            let translate = new Matrix(4, 4)
+            mat4x4Translate(translate, model.center[0], model.center[1], model.center[2]) //translating to the center point
+            for (let i = 0; i < model.vertices.length; i++) {
+                model.vertices[i] = new Vector(Matrix.multiply([translate, model.vertices[i]]))
+            }
+        
+            model.edges.push([...Array(sides).keys(), 0])
+        
+            for (let i = 0; i < model.vertices.length - 1; i++) {
+                model.edges.push([i, model.vertices.length - 1])
+            }
+
+            scene.models[i] = model;
+
+        } else if (ogmodel.type == 'cylinder') {
+
+        } else if (ogmodel.type == 'sphere') {
 
         }
 
@@ -297,10 +400,10 @@ function clipLineParallel(line) {
                 t = (1 - pt0.y)/ deltay;
 
             } else if (outcode & NEAR) {
-                t = (-1 - pt0.z)/ deltaz;
+                t = ( -pt0.z)/ deltaz;
 
             } else if (outcode & FAR) {
-                t = (-pt0.z)/(deltaz);
+                t = (-pt0.z - 1)/(deltaz);
                 
             }
 
