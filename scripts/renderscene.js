@@ -59,6 +59,8 @@ function init() {
         ]
     };
 
+    newModel();
+
     // event handler for pressing arrow keys
     document.addEventListener('keydown', onKeyDown, false);
     
@@ -69,6 +71,8 @@ function init() {
 
 // Animation loop - repeatedly calls rendering code
 function animate(timestamp) {
+
+    ctx.clearRect(0, 0, view.width, view.height);
     // step 1: calculate time (time since start)
     let time = timestamp - start_time;
     
@@ -77,10 +81,9 @@ function animate(timestamp) {
 
     // step 3: draw scene
     drawScene();
-
     // step 4: request next animation frame (recursively calling same function)
     // (may want to leave commented out while debugging initially)
-    // window.requestAnimationFrame(animate);
+    //window.requestAnimationFrame(animate);
 }
 
 function drawScene() {
@@ -111,50 +114,70 @@ function drawScene() {
     let new_verts = [];
     for(let i = 0; i < scene.models.length; i++) { //Looping through all models
         let model = scene.models[i];
-        let new_vertex;
-        //Just multiply vertices by matrix then clip
-        for(let j = 0; j < model.vertices.length; j++) { //Looping through all vertices
-            new_vertex = Matrix.multiply([matrix, model.matrix, model.vertices[j]])
-            new_verts.push(new_vertex)
-        }
-        for(let k = 0; k < model.edges.length; k++) { //Looping through edges
-            for(let l = 0; l < model.edges[k].length - 1; l++) { //Looping through each connecting edge
-                let index = model.edges[k][l];
-                let index2 = model.edges[k][l+1];
+        if(model.type == 'generic') {
 
-                let point0 = new_verts[index];
-                let point1 = new_verts[index2];
-                
-                let newline = {
-                    pt0: Vector4(point0.x, point0.y, point0.z, 1),
-                    pt1: Vector4(point1.x, point1.y, point1.z, 1)
-                }
-
-                if(scene.view.type == "perspective") {
-                    newline = clipLinePerspective(newline, zmin);
-                } else {
-                    newline = clipLineParallel(newline);
-                }
-
-                
-                
-                if(newline == null) {
-                    continue;
-                }
-                let new_vert0 = Matrix.multiply([v, proj, newline.pt0]);
-                new_vert0.x = new_vert0.x/ new_vert0.w;
-                new_vert0.y = new_vert0.y/ new_vert0.w;
-            
-                
-                let new_vert1 = Matrix.multiply([v, proj, newline.pt1]);
-                new_vert1.x = new_vert1.x/ new_vert1.w;
-                new_vert1.y = new_vert1.y/ new_vert1.w;
-                
-                drawLine(new_vert0.x, new_vert0.y, new_vert1.x, new_vert1.y);
-                
+            let new_vertex;
+            //Just multiply vertices by matrix then clip
+            for(let j = 0; j < model.vertices.length; j++) { //Looping through all vertices
+                new_vertex = Matrix.multiply([matrix, model.matrix, model.vertices[j]])
+                new_verts.push(new_vertex)
             }
-        
+            for(let k = 0; k < model.edges.length; k++) { //Looping through edges
+                for(let l = 0; l < model.edges[k].length - 1; l++) { //Looping through each connecting edge
+                    let index = model.edges[k][l];
+                    let index2 = model.edges[k][l+1];
+
+                    let point0 = new_verts[index];
+                    let point1 = new_verts[index2];
+                    
+                    let newline = {
+                        pt0: Vector4(point0.x, point0.y, point0.z, 1),
+                        pt1: Vector4(point1.x, point1.y, point1.z, 1)
+                    }
+
+                    if(scene.view.type == "perspective") {
+                        newline = clipLinePerspective(newline, zmin);
+                    } else {
+                        newline = clipLineParallel(newline);
+                    }
+
+                    if(newline == null) {
+                        continue;
+                    }
+                    let new_vert0 = Matrix.multiply([v, proj, newline.pt0]);
+                    new_vert0.x = new_vert0.x/ new_vert0.w;
+                    new_vert0.y = new_vert0.y/ new_vert0.w;
+                
+                    let new_vert1 = Matrix.multiply([v, proj, newline.pt1]);
+                    new_vert1.x = new_vert1.x/ new_vert1.w;
+                    new_vert1.y = new_vert1.y/ new_vert1.w;
+                    
+                    drawLine(new_vert0.x, new_vert0.y, new_vert1.x, new_vert1.y);
+                    
+                }
+            
+            }
         }
+    }
+}
+
+//generate new models for non-generic shapes
+function newModel() {
+    console.log(scene);
+
+    for(let i = 0; i < scene.models.length; i++) {
+        let model = scene.models[i];
+
+        if(model.type == 'cube') {
+
+        } else if (model.type == 'cone') {
+
+        } else if (model.type == 'cylinder') {
+
+        } else if (model.type == 'sphere') {
+
+        }
+
     }
 }
 
@@ -400,9 +423,27 @@ function clipLinePerspective(line, z_min) {
 
 // Called when user presses a key on the keyboard down 
 function onKeyDown(event) {
+    let translate,rotate, srpMat, matrix;
+
     switch (event.keyCode) {
         case 37: // LEFT Arrow
             console.log("left");
+
+            translate = new Matrix(4, 4);
+            mat4x4Translate(translate, scene.view.prp.x, scene.view.prp.y, scene.view.prp.z)
+            rotate = new Matrix(4, 4);
+            mat4x4RotateY(rotate, Math.PI);
+
+            srpMat = new Matrix(4, 1);
+            srpMat.values = [   [scene.view.srp.x],
+                                [scene.view.srp.y],
+                                [scene.view.srp.z],
+                                        [1]
+            ]
+
+            matrix = Matrix.multiply([rotate, translate, srpMat])
+            scene.view.srp = new Vector3(matrix.values[0][0], matrix.values[1][0], matrix.values[2][0])
+
             
             break;
         case 39: // RIGHT Arrow
@@ -425,16 +466,16 @@ function onKeyDown(event) {
             break;
         case 83: // S key
             console.log("S");
-            scene.view.prp.y = scene.view.prp.y - 10;
-            scene.view.srp.y = scene.view.srp.y - 10;
-            console.log(scene.view.prp.y);
+            scene.view.prp.z = scene.view.prp.z - 10;
+            scene.view.srp.z = scene.view.srp.z - 10;
+            console.log(scene.view.prp.z);
             
             break;
         case 87: // W key
             console.log("W");
-            scene.view.prp.y = scene.view.prp.y + 10;
-            scene.view.srp.y = scene.view.srp.y + 10;
-            console.log(scene.view.prp.y);
+            scene.view.prp.z = scene.view.prp.z + 10;
+            scene.view.srp.z = scene.view.srp.z + 10;
+            console.log(scene.view.prp.z);
             
             break;
     }
@@ -474,6 +515,8 @@ function loadNewScene() {
             }
             scene.models[i].matrix = new Matrix(4, 4);
         }
+        //newModel();
+        //window.requestAnimationFrame(animate);
     };
     reader.readAsText(scene_file.files[0], 'UTF-8');
 }
