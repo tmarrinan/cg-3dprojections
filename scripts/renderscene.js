@@ -64,28 +64,59 @@ function init() {
                 prp: Vector3(0, 0, 10),
                 srp: Vector3(0, 0, 0),
                 vup: Vector3(0, 1, 0),
-                clip: [-4, 20, -1, 17, 5, 75]
+                clip: [-4, 20, -1, 17, -20, 75]
             },
             models: [
-                /*{
+                {
                     type: "cube",
-                    center: [4, 4, -10],
+                    center: Vector3(4, 4, -10),
                     width: 8,
                     height: 8,
                     depth: 8
-                },*/
+                },
                 {
                     type:"cylinder",
-                    center: [0,4,-6],
+                    center: Vector3(0,6,-6),
+                    radius:4,
+                    height:8,
+                    sides: 30
+                },
+                {
+                    type:"cone",
+                    center: Vector3(-10,2,-2),
                     radius:4,
                     height:8,
                     sides:10
+                },
+                {
+                    type: 'generic',
+                    vertices: [
+                        Vector4( 0,  0, -30, 1),
+                        Vector4(20,  0, -30, 1),
+                        Vector4(20, 12, -30, 1),
+                        Vector4(10, 20, -30, 1),
+                        Vector4( 0, 12, -30, 1),
+                        Vector4( 0,  0, -60, 1),
+                        Vector4(20,  0, -60, 1),
+                        Vector4(20, 12, -60, 1),
+                        Vector4(10, 20, -60, 1),
+                        Vector4( 0, 12, -60, 1)
+                    ],
+                    edges: [
+                        [0, 1, 2, 3, 4, 0],
+                        [5, 6, 7, 8, 9, 5],
+                        [0, 5],
+                        [1, 6],
+                        [2, 7],
+                        [3, 8],
+                        [4, 9]
+                    ],
+                    matrix: new Matrix(4, 4)
                 }
             ]
         
     };
 
-    newModel();
     // event handler for pressing arrow keys
     document.addEventListener('keydown', onKeyDown, false);
     
@@ -105,6 +136,7 @@ function animate(timestamp) {
     // TODO: implement this!
 
     // step 3: draw scene
+    newModel()
     drawScene();
     // step 4: request next animation frame (recursively calling same function)
     // (may want to leave commented out while debugging initially)
@@ -136,8 +168,9 @@ function drawScene() {
     //let proj = Matrix.multiply([v, mper, matrix]);
     
     //  * draw line
-    let new_verts = [];
+    
     for(let i = 0; i < scene.models.length; i++) { //Looping through all models
+        let new_verts = [];
         let model = scene.models[i];
         if(model.type == 'generic') {
 
@@ -221,10 +254,9 @@ function newModel() {
             ])
 
             let translate = new Matrix(4, 4)
-            mat4x4Translate(translate, model.center[0], model.center[1], model.center[2]) //translating to the center point
+            mat4x4Translate(translate, model.center.x, model.center.y, model.center.z) //translating to the center point
             for (let i = 0; i < model.vertices.length; i++) {
                 model.vertices[i] = new Vector(Matrix.multiply([translate, model.vertices[i]]))
-                console.log(model.vertices[i])
             }
 
             model.edges.push(...[
@@ -262,7 +294,7 @@ function newModel() {
             model.vertices.push(new Vector4(0, (height / 2), 0, 1))
         
             let translate = new Matrix(4, 4)
-            mat4x4Translate(translate, model.center[0], model.center[1], model.center[2]) //translating to the center point
+            mat4x4Translate(translate, model.center.x, model.center.y, model.center.z) //translating to the center point
             for (let i = 0; i < model.vertices.length; i++) {
                 model.vertices[i] = new Vector(Matrix.multiply([translate, model.vertices[i]]))
             }
@@ -303,7 +335,7 @@ function newModel() {
             }
 
             let translate = new Matrix(4, 4)
-            mat4x4Translate(translate, model.center[0], model.center[1], model.center[2]) //translating to the center point
+            mat4x4Translate(translate, model.center.x, model.center.y, model.center.z) //translating to the center point
             for (let i = 0; i < model.vertices.length; i++) {
                 model.vertices[i] = new Vector(Matrix.multiply([translate, model.vertices[i]]))
             }
@@ -578,11 +610,11 @@ function onKeyDown(event) {
     switch (event.keyCode) {
         case 37: // LEFT Arrow
             console.log("left");
-
-            translate = new Matrix(4, 4);
+            scene.view.srp.y = scene.view.srp.y-5;
+            /*translate = new Matrix(4, 4);
             mat4x4Translate(translate, scene.view.prp.x, scene.view.prp.y, scene.view.prp.z)
             rotate = new Matrix(4, 4);
-            mat4x4RotateY(rotate, 1);
+            mat4x4RotateY(rotate, Math.PI/10);
 
             srpMat = new Matrix(4, 1);
             srpMat.values = [   [scene.view.srp.x],
@@ -593,10 +625,11 @@ function onKeyDown(event) {
 
             matrix = Matrix.multiply([rotate, translate, srpMat])
             scene.view.srp = new Vector3(matrix.values[0][0], matrix.values[1][0], matrix.values[2][0])
-
+            */
             break;
         case 39: // RIGHT Arrow
             console.log("right");
+            scene.view.srp.y = scene.view.srp.y+5;
             
             break;
         case 65: // A key
@@ -665,7 +698,8 @@ function loadNewScene() {
             scene.models[i].matrix = new Matrix(4, 4);
         }
         //newModel();
-        //window.requestAnimationFrame(animate);
+        
+        window.requestAnimationFrame(animate);
     };
     reader.readAsText(scene_file.files[0], 'UTF-8');
 }
