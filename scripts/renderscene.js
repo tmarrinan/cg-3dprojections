@@ -64,43 +64,31 @@ function init() {
                 prp: Vector3(0, 0, 10),
                 srp: Vector3(0, 0, 0),
                 vup: Vector3(0, 1, 0),
-                clip: [-4, 20, -1, 17, -20, 75]
+                clip: [-4, 20, -10, 20, -20, 75]
             },
             models: [
-                {
-                    type: "cube",
-                    center: Vector3(4, 4, -10),
-                    width: 8,
-                    height: 8,
-                    depth: 8
-                },
+
                 {
                     type:"cylinder",
-                    center: Vector3(0,6,-6),
+                    center: Vector3(-6,6,-6),
                     radius:4,
                     height:8,
                     sides: 30
                 },
-                {
-                    type:"cone",
-                    center: Vector3(-10,2,-2),
-                    radius:4,
-                    height:8,
-                    sides:10
-                },
+                
                 {
                     type: 'generic',
                     vertices: [
+                        Vector4( 0,  0, -15, 1),
+                        Vector4(10,  0, -15, 1),
+                        Vector4(10, 6, -15, 1),
+                        Vector4(5, 10, -15, 1),
+                        Vector4( 0, 6, -15, 1),
                         Vector4( 0,  0, -30, 1),
-                        Vector4(20,  0, -30, 1),
-                        Vector4(20, 12, -30, 1),
-                        Vector4(10, 20, -30, 1),
-                        Vector4( 0, 12, -30, 1),
-                        Vector4( 0,  0, -60, 1),
-                        Vector4(20,  0, -60, 1),
-                        Vector4(20, 12, -60, 1),
-                        Vector4(10, 20, -60, 1),
-                        Vector4( 0, 12, -60, 1)
+                        Vector4(10,  0, -30, 1),
+                        Vector4(10, 6, -30, 1),
+                        Vector4(5, 10, -30, 1),
+                        Vector4( 0, 6, -30, 1)
                     ],
                     edges: [
                         [0, 1, 2, 3, 4, 0],
@@ -610,7 +598,7 @@ function onKeyDown(event) {
     switch (event.keyCode) {
         case 37: // LEFT Arrow
             console.log("left");
-            scene.view.srp.y = scene.view.srp.y-5;
+            scene.view.srp.y = scene.view.srp.y-2;
             /*translate = new Matrix(4, 4);
             mat4x4Translate(translate, scene.view.prp.x, scene.view.prp.y, scene.view.prp.z)
             rotate = new Matrix(4, 4);
@@ -629,7 +617,7 @@ function onKeyDown(event) {
             break;
         case 39: // RIGHT Arrow
             console.log("right");
-            scene.view.srp.y = scene.view.srp.y+5;
+            scene.view.srp.y = scene.view.srp.y+2;
             
             break;
         case 65: // A key
