@@ -24,42 +24,45 @@ class Renderer {
     updateTransforms(time, delta_time) {
         // TODO: update any transformations needed for animation
     }
-
+    // TODO rotateLeft
     //
     rotateLeft() {
 
     }
-    
+    // TODO rotateRight
     //
     rotateRight() {
 
     }
-    
+    // TODO moveLeft
     //
     moveLeft() {
 
     }
-    
+    // TODO moveRight
     //
     moveRight() {
 
     }
-    
+    // TODO moveBackward
     //
     moveBackward() {
 
     }
-    
+    // TODO moveForward
     //
     moveForward() {
 
     }
-
+    // TODO draw
     //
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         console.log('draw()');
+
+
+
 
         // TODO: implement drawing here!
         // For each model

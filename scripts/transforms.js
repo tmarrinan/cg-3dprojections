@@ -1,3 +1,5 @@
+
+// TODO mat4x4Perspective
 // create a 4x4 matrix to the perspective projection / view matrix
 function mat4x4Perspective(prp, srp, vup, clip) {
     // 1. translate PRP to origin
@@ -9,7 +11,7 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     // let transform = Matrix.multiply([...]);
     // return transform;
 }
-
+// TODO mat4x4MPer
 // create a 4x4 matrix to project a perspective image on the z=-1 plane
 function mat4x4MPer() {
     let mper = new Matrix(4, 4);
@@ -17,6 +19,7 @@ function mat4x4MPer() {
     return mper;
 }
 
+// TODO mat4x4Viewport
 // create a 4x4 matrix to translate/scale projected vertices to the viewport (window)
 function mat4x4Viewport(width, height) {
     let viewport = new Matrix(4, 4);
@@ -28,7 +31,7 @@ function mat4x4Viewport(width, height) {
 ///////////////////////////////////////////////////////////////////////////////////
 // 4x4 Transform Matrices                                                         //
 ///////////////////////////////////////////////////////////////////////////////////
-
+// TODO mat4x4Identity
 // set values of existing 4x4 matrix to the identity matrix
 function mat4x4Identity(mat4x4) {
     mat4x4.values = [[1, 0, 0, 0],
@@ -37,31 +40,32 @@ function mat4x4Identity(mat4x4) {
                      [0, 0, 0, 1]];
 }
 
+// TODO mat4x4Translate
 // set values of existing 4x4 matrix to the translate matrix
 function mat4x4Translate(mat4x4, tx, ty, tz) {
     // mat4x4.values = ...;
 }
-
+// TODO mat4x4Scale
 // set values of existing 4x4 matrix to the scale matrix
 function mat4x4Scale(mat4x4, sx, sy, sz) {
     // mat4x4.values = ...;
 }
-
+// TODO mat4x4RotateX
 // set values of existing 4x4 matrix to the rotate about x-axis matrix
 function mat4x4RotateX(mat4x4, theta) {
     // mat4x4.values = ...;
 }
-
+// TODO mat4x4RotateY
 // set values of existing 4x4 matrix to the rotate about y-axis matrix
 function mat4x4RotateY(mat4x4, theta) {
     // mat4x4.values = ...;
 }
-
+// TODO mat4x4RotateZ
 // set values of existing 4x4 matrix to the rotate about z-axis matrix
 function mat4x4RotateZ(mat4x4, theta) {
     // mat4x4.values = ...;
 }
-
+// TODO mat4x4ShearXY
 // set values of existing 4x4 matrix to the shear parallel to the xy-plane matrix
 function mat4x4ShearXY(mat4x4, shx, shy) {
     // mat4x4.values = ...;
