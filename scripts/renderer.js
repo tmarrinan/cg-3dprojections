@@ -18,11 +18,25 @@ class Renderer {
         this.enable_animation = false;  // <-- disabled for easier debugging; enable for animation
         this.start_time = null;
         this.prev_time = null;
+
+        this.fuckyou = true;
     }
 
     //
     updateTransforms(time, delta_time) {
         // TODO: update any transformations needed for animation
+
+        // Firts we need to get some transformations going
+        // This should be starigh forward as we just need to import the view from the given file
+        // So... We use the mat4x4persepctive as per coincidinky the paramters and names algin
+        this.connonical_view = mat4x4Perspective(this.scene.view.prp,
+                                        this.scene.view.srp,
+                                        this.scene.view.vup,
+                                        this.scene.view.clip); // <-- Hold on tehre pretty boy we need to keep everything legigble and nice so inteliiJ doesnt yell at me. See, that's funny because I'm creating a super long comment out here LOLOL
+
+        this.m_view = Matrix.multiply([mat4x4MPer(), this.connonical_view]); // Oof good job Lennart - very smart very inelligent || InteliJ is yelling at me for grammar mistakes. I dont know how to spell anyways. Stop yelling.
+
+
     }
     // TODO rotateLeft
     //
@@ -59,8 +73,77 @@ class Renderer {
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        console.log('draw()');
+        /*
 
+        Okay GANG
+
+        The plan is simple:
+
+        1) We need to get all the datarooskies from the dataroosky file
+        2) Then we need to save the vertices in an array or list whater tf it is called in Javascipt
+        3) Then, we need to apply clipping - Yeah that's right.
+        // 4) Then we need to multiply that THANG by a view.
+
+         */
+
+        // Step One *Music*
+
+        // Iterating over ALL models in file
+        for (let model = 0; model < this.scene.models.length; model++) {
+
+            let connonical_verts = []; // Oooh Big INteliJ with its Big autocomplete - ": any[]" - I have no idea what the type is gonna be either
+
+            for (let vert = 0; vert < this.scene.models[model].vertices.length; vert++) {
+
+                let temp_vert = Vector4(this.scene.models[model].vertices[vert].x,
+                                        this.scene.models[model].vertices[vert].y,
+                                        this.scene.models[model].vertices[vert].z,
+                                        this.scene.models[model].vertices[vert].w); // This boy in my DMs think im preeeetttyyyy
+
+                connonical_verts[vert] = Matrix.multiply([this.connonical_view, temp_vert]);
+
+            }
+
+            // TODO Add the clipping...
+            // TODO Add alteration of viewport
+
+            console.log(connonical_verts);
+
+            for (let draw = 0; draw < connonical_verts.length; draw+=2) {
+
+                this.drawLine(connonical_verts[draw].values[0],
+                            connonical_verts[draw].values[1],
+                            connonical_verts[draw+1].values[0],
+                            connonical_verts[draw+1].values[1]);
+            }
+
+
+        }
+
+
+
+
+        /*
+        OKay we first need to iterate trhough each model. This can be done via a for loop.
+        - Call This Loop 1
+        We then need to go through the components of each model. We can do this via another for loop.
+        - Call This Loop 2
+
+         */
+        // if (this.fuckyou) {
+            // Loop 1
+            // for (let x = 0; x < this.scene.models.length; x++) {
+            //     // Loop 2
+            //     for (let y = 0; y < this.scene.models[x].vertices.length-1; y++) {
+            //         // console.log(this.scene.models[x].vertices[y].data)
+            //         this.drawLine(this.scene.models[x].vertices[y].data[0],
+            //             this.scene.models[x].vertices[y].data[1],
+            //             this.scene.models[x].vertices[y+1].data[0],
+            //             this.scene.models[x].vertices[y+1].data[1]);
+            //     }
+            // }
+            // this.fuckyou = false;
+        // }
 
 
 
