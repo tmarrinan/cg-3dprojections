@@ -252,8 +252,10 @@ class Renderer {
     // z_min:        float (near clipping plane in canonical view volume)
     clipLinePerspective(line, z_min) {
         let result = null;
+
         let p0 = Vector4(line.pt0.x, line.pt0.y, line.pt0.z, line.pt1.w);
         let p1 = Vector4(line.pt1.x, line.pt1.y, line.pt1.z, line.pt1.w);
+
         let out0 = this.outcodePerspective(p0, z_min);
         let out1 = this.outcodePerspective(p1, z_min);
         
