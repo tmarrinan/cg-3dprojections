@@ -15,7 +15,7 @@ class Renderer {
         this.canvas.height = canvas.height;
         this.ctx = this.canvas.getContext('2d');
         this.scene = this.processScene(scene);
-        this.enable_animation = false;  // <-- disabled for easier debugging; enable for animation
+        this.enable_animation = true;  // <-- disabled for easier debugging; enable for animation
         this.start_time = null;
         this.prev_time = null;
 
@@ -146,8 +146,8 @@ class Renderer {
 
             for (let vert = 0; vert < cur_edge.length-1; vert++) {  // Loops Verts
 
-                let vertice_1_idx = edge[vert];
-                let vertice_2_idx = edge[vert + 1];
+                let vertice_1_idx = cur_edge[vert];
+                let vertice_2_idx = cur_edge[vert + 1];
 
                 // Get the W - haha get it? Get the dub? Like winning? Haha - I'm the best
                 let vertice_1_w = Matrix.multiply([n_per_view, vertices[vertice_1_idx]]);
@@ -155,14 +155,16 @@ class Renderer {
 
                 // Do the clippy whippy
 
-                let line = {pt0: vertice_1_w, pt1: vertice_2_w};
+                let line= {pt0: vertice_1_w, pt1: vertice_2_w};
 
                 let clipped_line = this.clipLinePerspective(line, 0.1);
 
                 if(clipped_line !== null){
                     // Uhhhh updates the freakinnnn vertices W -- yeaaa yeaaa
-                    vertice_1_w = Matrix.multiply([view_view, m_per_view, clipped_line.pt0]);
-                    vertice_2_w = Matrix.multiply([view_view, m_per_view, clipped_line.pt1]);
+
+
+                vertice_1_w = Matrix.multiply([view_view, m_per_view, clipped_line.pt0]);
+                vertice_2_w = Matrix.multiply([view_view, m_per_view, clipped_line.pt1]);
 
                     // Niceee... now we get ready for some drawin' innit - Bootofwoah
                     let vertice_1 = new Vector3(vertice_1_w.x / vertice_1_w.w, vertice_1_w.y / vertice_1_w.w);
@@ -259,10 +261,10 @@ class Renderer {
         let out0 = this.outcodePerspective(p0, z_min);
         let out1 = this.outcodePerspective(p1, z_min);
         
-        // TODO: implement clipping here!
-
-        // Okay okay... Let just define some varibaloes here
-
+        // // TODO: implement clipping here!
+        //
+        // // Okay okay... Let just define some varibaloes here
+        //
         let t;
         let point_out;
         let delta_x;
@@ -315,9 +317,9 @@ class Renderer {
             }
 
             if(point_out === out0) {
-                out0 = this.outcodePerspective(lineOut, z_min);
+                out0 = this.outcodePerspective(line_out, z_min);
             } else {
-                out1 = this.outcodePerspective(lineOut, z_min);
+                out1 = this.outcodePerspective(line_out, z_min);
             }
 
         }
