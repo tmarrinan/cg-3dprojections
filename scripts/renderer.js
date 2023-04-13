@@ -15,51 +15,197 @@ class Renderer {
         this.canvas.height = canvas.height;
         this.ctx = this.canvas.getContext('2d');
         this.scene = this.processScene(scene);
-        this.enable_animation = false;  // <-- disabled for easier debugging; enable for animation
+        this.enable_animation = true;  // <-- disabled for easier debugging; enable for animation
         this.start_time = null;
         this.prev_time = null;
+
+
+        this.prp = new Vector3(0, 5, -3);
+        this.srp = new Vector3(10, 10, -15);
+        this.vup = new Vector3(0, 1, 0);
+
+
+
+
     }
 
     //
     updateTransforms(time, delta_time) {
         // TODO: update any transformations needed for animation
-    }
 
+        // Firts we need to get some transformations going
+        // This should be starigh forward as we just need to import the view from the given file
+        // So... We use the mat4x4persepctive as per coincidinky the paramters and names algin
+
+    }
+    // TODO rotateLeft
     //
     rotateLeft() {
 
     }
-    
+    // TODO rotateRight
     //
     rotateRight() {
 
     }
-    
+    // TODO moveLeft
     //
     moveLeft() {
+        this.prp.x--;
+        this.srp.x--; // Opposite of move right
 
     }
-    
+    // TODO moveRight
     //
     moveRight() {
-
+        this.prp.x++;
+        this.srp.x++; // <-- You ever thought about starting a Goat Farm in New Zealand?
+                        // - Idk... a goat farm seem pretty chill to me. You always have goat cheese on deck
     }
-    
+    // TODO moveBackward
     //
     moveBackward() {
-
+        this.prp.z++;
+        this.srp.z++;
     }
-    
+    // TODO moveForward
     //
     moveForward() {
-
+        this.prp.z--;
+        this.srp.z--;
     }
+    // TODO draw
 
-    //
+
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        console.log('draw()');
+        let n_per_view = mat4x4Perspective(this.prp,
+            this.srp, this.vup, [-19, 5, -10, 8, 12, 100]);
+        let m_per_view = mat4x4MPer();
+        let view_view = mat4x4Viewport(800, 600);
+
+        /*
+
+        Okay GANG
+
+        The plan is simple:
+
+        1) We need to get all the datarooskies from the dataroosky file
+        2) Then we need to save the vertices in an array or list whater tf it is called in Javascipt
+        3) Then, we need to apply clipping - Yeah that's right.
+        // 4) Then we need to multiply that THANG by a view.
+
+         */
+
+        // Step One we call some functions
+
+
+
+        // Iterating over ALL models in file
+        // for (let model = 0; model < this.scene.models.length; model++) {
+        //
+        //     let connonical_verts = []; // Oooh Big INteliJ with its Big autocomplete - ": any[]" - I have no idea what the type is gonna be either
+        //
+        //     for (let vert = 0; vert < this.scene.models[model].vertices.length; vert++) {
+        //
+        //         let temp_vert = Vector4(this.scene.models[model].vertices[vert].x,
+        //                                 this.scene.models[model].vertices[vert].y,
+        //                                 this.scene.models[model].vertices[vert].z,
+        //                                 this.scene.models[model].vertices[vert].w); // This boy in my DMs think im preeeetttyyyy
+        //
+        //         connonical_verts[vert] = Matrix.multiply([this.connonical_view, temp_vert]);
+        //
+        //     }
+        //
+        //     // TODO Add the clipping...
+        //     // TODO Add alteration of viewport
+        //
+        //     console.log(connonical_verts);
+        //
+        //     for (let draw = 0; draw < connonical_verts.length; draw+=2) {
+        //
+        //         this.drawLine(connonical_verts[draw].values[0],
+        //                     connonical_verts[draw].values[1],
+        //                     connonical_verts[draw+1].values[0],
+        //                     connonical_verts[draw+1].values[1]);
+        //     }
+        //
+        //
+        // }
+
+
+
+        let model = this.scene.models[0];
+        let edges = model.edges;
+        let vertices = model.vertices;
+
+        for (let edge = 0; edge < edges.length; edge++) {   // Loops Edges
+
+            let cur_edge = edges[edge];
+
+            for (let vert = 0; vert < cur_edge.length-1; vert++) {  // Loops Verts
+
+                let vertice_1_idx = cur_edge[vert];
+                let vertice_2_idx = cur_edge[vert + 1];
+
+                // Get the W - haha get it? Get the dub? Like winning? Haha - I'm the best
+                let vertice_1_w = Matrix.multiply([n_per_view, vertices[vertice_1_idx]]);
+                let vertice_2_w = Matrix.multiply([n_per_view, vertices[vertice_2_idx]]);
+
+                // Do the clippy whippy
+
+                let line= {pt0: vertice_1_w, pt1: vertice_2_w};
+
+                let clipped_line = this.clipLinePerspective(line, 0.1);
+
+                if(clipped_line !== null){
+                    // Uhhhh updates the freakinnnn vertices W -- yeaaa yeaaa
+
+
+                vertice_1_w = Matrix.multiply([view_view, m_per_view, clipped_line.pt0]);
+                vertice_2_w = Matrix.multiply([view_view, m_per_view, clipped_line.pt1]);
+
+                    // Niceee... now we get ready for some drawin' innit - Bootofwoah
+                    let vertice_1 = new Vector3(vertice_1_w.x / vertice_1_w.w, vertice_1_w.y / vertice_1_w.w);
+                    let vertice_2 = new Vector3(vertice_2_w.x / vertice_2_w.w, vertice_2_w.y / vertice_2_w.w);
+
+
+                    this.drawLine(  vertice_1.x,
+                        vertice_1.y,
+                        vertice_2.x,
+                        vertice_2.y);
+                }
+
+            }
+        }
+
+
+
+
+        /*
+        OKay we first need to iterate trhough each model. This can be done via a for loop.
+        - Call This Loop 1
+        We then need to go through the components of each model. We can do this via another for loop.
+        - Call This Loop 2
+
+         */
+        // if (this.fuckyou) {
+            // Loop 1
+            // for (let x = 0; x < this.scene.models.length; x++) {
+            //     // Loop 2
+            //     for (let y = 0; y < this.scene.models[x].vertices.length-1; y++) {
+            //         // console.log(this.scene.models[x].vertices[y].data)
+            //         this.drawLine(this.scene.models[x].vertices[y].data[0],
+            //             this.scene.models[x].vertices[y].data[1],
+            //             this.scene.models[x].vertices[y+1].data[0],
+            //             this.scene.models[x].vertices[y+1].data[1]);
+            //     }
+            // }
+            // this.fuckyou = false;
+        // }
+
+
 
         // TODO: implement drawing here!
         // For each model
@@ -71,6 +217,10 @@ class Renderer {
         //     * translate/scale to viewport (i.e. window)
         //     * draw line
     }
+
+
+
+
 
     // Get outcode for a vertex
     // vertex:       Vector4 (transformed vertex in homogeneous coordinates)
@@ -104,16 +254,82 @@ class Renderer {
     // z_min:        float (near clipping plane in canonical view volume)
     clipLinePerspective(line, z_min) {
         let result = null;
-        let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z); 
-        let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
+
+        let p0 = Vector4(line.pt0.x, line.pt0.y, line.pt0.z, line.pt1.w);
+        let p1 = Vector4(line.pt1.x, line.pt1.y, line.pt1.z, line.pt1.w);
+
         let out0 = this.outcodePerspective(p0, z_min);
         let out1 = this.outcodePerspective(p1, z_min);
         
-        // TODO: implement clipping here!
-        
-        return result;
-    }
+        // // TODO: implement clipping here!
+        //
+        // // Okay okay... Let just define some varibaloes here
+        //
+        let t;
+        let point_out;
+        let delta_x;
+        let delta_y;
+        let delta_z;
+        let point;
+        let breaker = false;
 
+        let line_out = {pt0: p0, pt1: p1};
+
+        while (true) {
+            if (!(out0 | out1)) {
+                // Accept
+                breaker = true;
+                break;
+            } else if (out0 & out1) {
+                // Reject
+                break;
+            } else {
+                delta_x = p1.x - p0.x;
+                delta_y = p1.y - p0.y;
+                delta_z = p1.z - p0.z;
+
+                if (out0 > out1) {
+                    point_out = out0;
+                    point = p0;
+                } else {
+                    point_out = out1;
+                    point = p1;
+                }
+
+                if (point_out & TOP) {
+                    t = (p0.y + p0.z) / (-delta_y - delta_z);
+                } else if (point_out & BOTTOM) {
+                    t = (-p0.y + p0.z) / (delta_y - delta_z);
+                } else if (point_out & RIGHT) {
+                    t = (p0.x + p0.z) / (-delta_x - delta_z);
+                } else if (point_out & LEFT) {
+                    t = (-p0.x + p0.z) / (delta_x - delta_z);
+                } else if (point_out & FAR) {
+                    t = (-p0.z - 1) / delta_z;
+                } else if (point_out & NEAR) {
+                    t = (p0.z - z_min) / -delta_z;
+                }
+
+                // Surprsingly all are the same.
+                point.x = line.pt0.x + (t * delta_x);
+                point.y = line.pt0.y + (t * delta_y);
+                point.z = line.pt0.z + (t * delta_z);
+            }
+
+            if(point_out === out0) {
+                out0 = this.outcodePerspective(line_out, z_min);
+            } else {
+                out1 = this.outcodePerspective(line_out, z_min);
+            }
+
+        }
+
+        if (breaker) {
+            return line_out;
+        }
+        return result;
+
+    }
     //
     animate(timestamp) {
         // Get time and delta time for animation
