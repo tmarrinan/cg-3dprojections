@@ -178,10 +178,10 @@ class Renderer {
                 }
             }
             else {
-                model.center = Vector4(scene.models[i].center[0],
-                                       scene.models[i].center[1],
-                                       scene.models[i].center[2],
-                                       1);
+                model.center = CG.Vector4(scene.models[i].center[0],
+                                         scene.models[i].center[1],
+                                         scene.models[i].center[2],
+                                         1);
                 for (let key in scene.models[i]) {
                     if (scene.models[i].hasOwnProperty(key) && key !== 'type' && key != 'center') {
                         model[key] = JSON.parse(JSON.stringify(scene.models[i][key]));
